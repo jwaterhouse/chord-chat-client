@@ -1,32 +1,24 @@
 #ifndef LOCALNODE_H
 #define LOCALNODE_H
 
+//#include <boost/asio/ip/address.hpp>
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
-class LocalNode : INode
+class LocalNode : public INode
 {
     public:
-        LocalNode(std::string ip, unsigned int port) : INode(ip, port) { };
+        LocalNode(const std::string&, unsigned int);
+        LocalNode(const std::string&, unsigned int, INode*);
+        virtual ~LocalNode();
 
-        LocalNode(std::string ip, unsigned int port, INode* n) : INode(ip, port)
-        {
-            join(n);
-        };
-
-        virtual ~LocalNode()
-        {
-            if (predecessor != 0)
-            {
-                delete predecessor;
-                predecessor = 0;
-            }
-        }
+    private:
+        void init(const std::string&, unsigned int);
 
     protected:
-        virtual INode* findPredecessor(ID*);
-        virtual INode* findSuccessor(ID*);
-        virtual INode* closestPrecedingFinger(ID*);
+        virtual INode* findPredecessor(const ID&);
+        virtual INode* findSuccessor(const ID&);
+        virtual INode* closestPrecedingFinger(const ID&);
         virtual void join(INode*);
         virtual void initFingerTable(INode*);
         virtual void updateOthers();
@@ -41,8 +33,10 @@ class LocalNode : INode
         virtual INode* getSuccessor();
         virtual void setSuccessor(INode* n);
 
-        INode* predecessor;
-        FingerTable finger;
+        INode* _predecessor = 0;
+        FingerTable* _finger = 0;
+
+        //boost::thread t;
 };
 
 #endif // LOCALNODE_H

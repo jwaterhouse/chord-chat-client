@@ -6,17 +6,16 @@
 class FingerTable
 {
     public:
-        FingerTable();
+        FingerTable(const ID&);
         virtual ~FingerTable();
 
-        ID* start(unsigned int);
-        //void interval(unsigned int, unsigned int*, unsigned int*);
+        ID start(unsigned int);
         INode* node(unsigned int);
         void setNode(unsigned int, INode*);
     protected:
     private:
-        INode* entries[M];
-        ID id;
+        INode* _entries[M] = {NULL};
+        ID* _id = 0;
 };
 
 #endif // FINGERTABLE_H

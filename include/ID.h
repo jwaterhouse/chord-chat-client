@@ -14,13 +14,13 @@ class ID
 {
     public:
         ID() { };
-        ID(byte*);
+        ID(const byte*);
         ID(const ID&);
-        ID(std::string, unsigned int);
+        ID(const std::string&, unsigned int);
         virtual ~ID();
 
-        bool isInInterval(const ID*, const ID*) const;
-        const byte* get();
+        bool isInInterval(const ID&, const ID&) const;
+        const byte* c_str() const;
 
         byte& operator[](int);
         const byte& operator[](int) const;
@@ -36,7 +36,7 @@ class ID
 
     protected:
     private:
-        byte id[ID_LEN];
+        byte _id[ID_LEN] = {0x00};
 };
 
 #endif // ID_H

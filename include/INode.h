@@ -27,32 +27,32 @@ enum class RPCCodes
 class INode
 {
     public:
-        INode(std::string ip, unsigned int port)
+        //INode() { };
+        INode(const std::string& ip, unsigned int port)
         {
-            init(ip, port);
+            _ip = new std::string(ip.c_str(), ip.length());
+            _port = port;
+            _id = new ID(*_ip, _port);
         }
 
         virtual ~INode()
         {
-            if (id != 0)
+            if (_id != 0)
             {
-                delete id;
-                id = 0;
+                delete _id;
+                _id = 0;
             }
-        }
 
-        virtual void init(std::string ip, unsigned int port)
-        {
-            this->setPredecessor(0);
-            this->setSuccessor(this);
-            this->ip = ip;
-            this->port = port;
-            this->id = new ID(ip, port);
-        }
+            if (_ip != 0)
+            {
+                delete _ip;
+                _ip = 0;
+            }
+        };
 
-        virtual INode* findPredecessor(ID*) = 0;
-        virtual INode* findSuccessor(ID*) = 0;
-        virtual INode* closestPrecedingFinger(ID*) = 0;
+        virtual INode* findPredecessor(const ID&) = 0;
+        virtual INode* findSuccessor(const ID&) = 0;
+        virtual INode* closestPrecedingFinger(const ID&) = 0;
         virtual void join(INode*) = 0;
         virtual void initFingerTable(INode*) = 0;
         virtual void updateOthers() = 0;
@@ -66,15 +66,14 @@ class INode
         virtual void setPredecessor(INode* n) = 0;
         virtual INode* getSuccessor() = 0;
         virtual void setSuccessor(INode* n) = 0;
-        virtual const ID* getID() const
-        {
-            return id;
-        }
+        const ID getID() const { return *_id; }
+        const std::string* getIP() const { return _ip; }
+        unsigned int getPort() const { return _port; }
 
     protected:
-        ID* id;
-        std::string ip;
-        unsigned int port;
+        ID* _id = 0;
+        std::string* _ip = 0;
+        unsigned int _port = 0;
 
 };
 

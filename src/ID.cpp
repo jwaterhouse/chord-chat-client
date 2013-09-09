@@ -1,18 +1,19 @@
+#include <stdlib.h>     /* malloc, free, rand */
 #include "../include/ID.h"
 
-ID::ID(byte* id)
+ID::ID(const byte* id)
 {
     for (int i = 0; i < ID_LEN; ++i)
-        this->id[i] = id[i];
+        _id[i] = id[i];
 };
 
 ID::ID(const ID& other)
 {
     for(int i = 0; i < ID_LEN; ++i)
-        (*this)[i] = other[i];
+        _id[i] = other[i];
 }
 
-ID::ID(std::string ip, unsigned int port)
+ID::ID(const std::string& ip, unsigned int port)
 {
     // Create the node's ID as a sha-1 of it's ip and port (e.g. "192.168.1.1:55")
     //std::ostringstream stream;
@@ -45,28 +46,34 @@ ID::ID(std::string ip, unsigned int port)
     sha1->addBytes((const char*)portByteArr, 4);
 
 	byte* digest = sha1->getDigest();
-	for (int i = 0; i < ID_LEN; ++i) id[0] = (byte)(digest[0]);
-	delete digest;
+	for (int i = 0; i < ID_LEN; ++i) _id[i] = digest[i];
+	free(digest);
 	delete sha1;
 }
 
 ID::~ID()
 {
-    //dtor
+    /*
+    if (_id != 0)
+    {
+        delete _id;
+        _id = 0;
+    }
+    */
 }
 
-bool ID::isInInterval(const ID* lower, const ID* upper) const
+bool ID::isInInterval(const ID& lower, const ID& upper) const
 {
     if (lower < upper)
-        return *this > *lower && *this < *upper;
+        return *this > lower && *this < upper;
     if (lower > upper)
-        return *this > *lower || *this < *upper;
+        return *this > lower || *this < upper;
     return false;
 }
 
-const byte* ID::get()
+const byte* ID::c_str() const
 {
-    return id;
+    return _id;
 }
 
 byte& ID::operator[](int index)
@@ -75,7 +82,7 @@ byte& ID::operator[](int index)
     {
         //error
     }
-    return id[index];
+    return _id[index];
 }
 const byte& ID::operator[](int index) const
 {
@@ -83,7 +90,7 @@ const byte& ID::operator[](int index) const
     {
         //error
     }
-    return id[index];
+    return _id[index];
 }
 
 
@@ -92,8 +99,8 @@ ID& ID::operator+=(const ID& other)
     byte overflow = 0x00;
     for(int i = 0; i < ID_LEN; ++i)
     {
-        unsigned int val = (unsigned int)id[i] + (unsigned int)other[i] + (unsigned int)overflow;
-        id[i] = (byte)val;
+        unsigned int val = (unsigned int)_id[i] + (unsigned int)other[i] + (unsigned int)overflow;
+        _id[i] = (byte)val;
         overflow = (byte)(val >> 8) & 0x01;
     }
     return *this;
@@ -109,13 +116,13 @@ ID& ID::operator-=(const ID& other)
     byte temp[ID_LEN];
     temp[0] = 0x01;
     for(int i = 0; i < ID_LEN; ++i)
-        id[i] = id[i] ^ 0xff;
+        _id[i] = _id[i] ^ 0xff;
 
     byte overflow = 0x00;
     for(int i = 0; i < ID_LEN; ++i)
     {
-        unsigned int val = (unsigned int)id[i] + (unsigned int)temp[i] + (unsigned int)overflow;
-        id[i] = (byte)val;
+        unsigned int val = (unsigned int)_id[i] + (unsigned int)temp[i] + (unsigned int)overflow;
+        _id[i] = (byte)val;
         overflow = (byte)(val >> 8) & 0x01;
     }
 

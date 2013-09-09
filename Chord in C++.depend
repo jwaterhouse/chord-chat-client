@@ -132,3 +132,50 @@
 	<assert.h>
 	"../include/sha1.h"
 
+1378725463 source:/home/jon/Dev/chord-in-c/src/FingerTable.cpp
+	<cmath>
+	<cstring>
+	"../include/FingerTable.h"
+
+1378725463 /home/jon/Dev/chord-in-c/include/FingerTable.h
+	"../include/INode.h"
+
+1378725665 /home/jon/Dev/chord-in-c/include/INode.h
+	<string>
+	"../include/ID.h"
+
+1378725702 /home/jon/Dev/chord-in-c/include/ID.h
+	<string>
+	<sstream>
+	"../include/sha1.h"
+
+1378717511 /home/jon/Dev/chord-in-c/include/sha1.h
+
+1378725719 source:/home/jon/Dev/chord-in-c/src/ID.cpp
+	<stdlib.h>
+	"../include/ID.h"
+
+1378726640 source:/home/jon/Dev/chord-in-c/src/LocalNode.cpp
+	"../include/LocalNode.h"
+	<cstdlib>
+
+1378725605 /home/jon/Dev/chord-in-c/include/LocalNode.h
+	"../include/INode.h"
+	"../include/FingerTable.h"
+
+1378717511 source:/home/jon/Dev/chord-in-c/src/RemoteNode.cpp
+	"../include/RemoteNode.h"
+
+1378717511 /home/jon/Dev/chord-in-c/include/RemoteNode.h
+
+1378726707 source:/home/jon/Dev/chord-in-c/src/main.cpp
+	<iostream>
+	"../include/LocalNode.h"
+
+1378717511 source:/home/jon/Dev/chord-in-c/src/sha1.cpp
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<assert.h>
+	"../include/sha1.h"
+

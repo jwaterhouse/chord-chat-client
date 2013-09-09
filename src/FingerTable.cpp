@@ -1,13 +1,15 @@
 #include <cmath>
+#include <cstring>
 #include "../include/FingerTable.h"
 
-FingerTable::FingerTable()
+FingerTable::FingerTable(const ID& id)
 {
-    //ctor
+    _id = new ID(id);
 }
 
 FingerTable::~FingerTable()
 {
+    /*
     for(int i = 0; i < M; ++i)
     {
         if (entries[i] != 0)
@@ -16,9 +18,16 @@ FingerTable::~FingerTable()
             entries[i] = 0;
         }
     }
+    */
+
+    if (_id != 0)
+    {
+        delete _id;
+        _id = 0;
+    }
 }
 
-ID* FingerTable::start(unsigned int k)
+ID FingerTable::start(unsigned int k)
 {
     if (k < 0 || k >= M)
     {
@@ -28,23 +37,25 @@ ID* FingerTable::start(unsigned int k)
     b[ID_LEN - k / 8 - 1] = (0x01 << (k % 8));
     ID bID(b);
 
-    ID* ret = new ID(id + bID);
-    return ret;
+    ID id = *_id + bID;
+    return id;
 }
 
 //void interval(unsigned int k, FingerTableEntry* intervalStart, FingerTableEntry* intervalEnd);
 
 INode* FingerTable::node(unsigned int k)
 {
-    return this->entries[k];
+    return _entries[k];
 }
 
 void FingerTable::setNode(unsigned int k, INode* n)
 {
-    if (entries[k] != 0)
+    /*
+    if (_entries[k] != 0)
     {
-        delete entries[k];
-        entries[k] = 0;
+        delete _entries[k];
+        _entries[k] = 0;
     }
-    this->entries[k] = n;
+    */
+    _entries[k] = n;
 }

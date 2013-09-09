@@ -38,10 +38,13 @@
 		<Unit filename="include/INode.h" />
 		<Unit filename="include/LocalNode.h" />
 		<Unit filename="include/RemoteNode.h" />
+		<Unit filename="include/sha1.h" />
 		<Unit filename="src/FingerTable.cpp" />
 		<Unit filename="src/ID.cpp" />
 		<Unit filename="src/LocalNode.cpp" />
 		<Unit filename="src/RemoteNode.cpp" />
+		<Unit filename="src/main.cpp" />
+		<Unit filename="src/sha1.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
