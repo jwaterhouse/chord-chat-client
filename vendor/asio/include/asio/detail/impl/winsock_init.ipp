@@ -2,7 +2,7 @@
 // detail/impl/winsock_init.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2011 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,7 +17,7 @@
 
 #include "asio/detail/config.hpp"
 
-#if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
 
 #include "asio/detail/socket_types.hpp"
 #include "asio/detail/winsock_init.hpp"
@@ -64,6 +64,6 @@ void winsock_init_base::throw_on_error(data& d)
 
 #include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+#endif // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
 
 #endif // ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP

@@ -2,7 +2,7 @@
 // buffered_write_stream.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2011 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,14 +17,13 @@
 
 #include "asio/detail/config.hpp"
 #include <cstddef>
-#include <cstring>
-#include <boost/type_traits/remove_reference.hpp>
 #include "asio/buffered_write_stream_fwd.hpp"
 #include "asio/buffer.hpp"
 #include "asio/completion_condition.hpp"
 #include "asio/detail/bind_handler.hpp"
 #include "asio/detail/buffered_stream_storage.hpp"
 #include "asio/detail/noncopyable.hpp"
+#include "asio/detail/type_traits.hpp"
 #include "asio/error.hpp"
 #include "asio/io_service.hpp"
 #include "asio/write.hpp"
@@ -51,7 +50,7 @@ class buffered_write_stream
 {
 public:
   /// The type of the next layer.
-  typedef typename boost::remove_reference<Stream>::type next_layer_type;
+  typedef typename remove_reference<Stream>::type next_layer_type;
 
   /// The type of the lowest layer.
   typedef typename next_layer_type::lowest_layer_type lowest_layer_type;
@@ -60,7 +59,7 @@ public:
   /// The default buffer size.
   static const std::size_t default_buffer_size = implementation_defined;
 #else
-  BOOST_STATIC_CONSTANT(std::size_t, default_buffer_size = 1024);
+  ASIO_STATIC_CONSTANT(std::size_t, default_buffer_size = 1024);
 #endif
 
   /// Construct, passing the specified argument to initialise the next layer.
@@ -95,13 +94,6 @@ public:
   const lowest_layer_type& lowest_layer() const
   {
     return next_layer_.lowest_layer();
-  }
-
-  /// (Deprecated: use get_io_service().) Get the io_service associated with
-  /// the object.
-  asio::io_service& io_service()
-  {
-    return next_layer_.get_io_service();
   }
 
   /// Get the io_service associated with the object.
@@ -183,16 +175,7 @@ public:
   template <typename ConstBufferSequence>
   std::size_t write_some(const ConstBufferSequence& buffers)
   {
-    typename ConstBufferSequence::const_iterator iter = buffers.begin();
-    typename ConstBufferSequence::const_iterator end = buffers.end();
-    size_t total_buffer_size = 0;
-    for (; iter != end; ++iter)
-    {
-      asio::const_buffer buffer(*iter);
-      total_buffer_size += asio::buffer_size(buffer);
-    }
-
-    if (total_buffer_size == 0)
+    if (asio::buffer_size(buffers) == 0)
       return 0;
 
     if (storage_.size() == storage_.capacity())
@@ -209,16 +192,7 @@ public:
   {
     ec = asio::error_code();
 
-    typename ConstBufferSequence::const_iterator iter = buffers.begin();
-    typename ConstBufferSequence::const_iterator end = buffers.end();
-    size_t total_buffer_size = 0;
-    for (; iter != end; ++iter)
-    {
-      asio::const_buffer buffer(*iter);
-      total_buffer_size += asio::buffer_size(buffer);
-    }
-
-    if (total_buffer_size == 0)
+    if (asio::buffer_size(buffers) == 0)
       return 0;
 
     if (storage_.size() == storage_.capacity() && !flush(ec))
@@ -250,25 +224,14 @@ public:
       }
       else
       {
-        using namespace std; // For memcpy.
-
         std::size_t orig_size = storage_.size();
         std::size_t space_avail = storage_.capacity() - orig_size;
-        std::size_t bytes_copied = 0;
-
-        typename ConstBufferSequence::const_iterator iter = buffers_.begin();
-        typename ConstBufferSequence::const_iterator end = buffers_.end();
-        for (; iter != end && space_avail > 0; ++iter)
-        {
-          std::size_t bytes_avail = buffer_size(*iter);
-          std::size_t length = (bytes_avail < space_avail)
-            ? bytes_avail : space_avail;
-          storage_.resize(orig_size + bytes_copied + length);
-          memcpy(storage_.data() + orig_size + bytes_copied,
-              buffer_cast<const void*>(*iter), length);
-          bytes_copied += length;
-          space_avail -= length;
-        }
+        std::size_t bytes_avail = asio::buffer_size(buffers_);
+        std::size_t length = bytes_avail < space_avail
+          ? bytes_avail : space_avail;
+        storage_.resize(orig_size + length);
+        std::size_t bytes_copied = asio::buffer_copy(
+            storage_.data() + orig_size, buffers_, length);
 
         io_service_.dispatch(detail::bind_handler(handler_, ec, bytes_copied));
       }
@@ -287,16 +250,7 @@ public:
   void async_write_some(const ConstBufferSequence& buffers,
       WriteHandler handler)
   {
-    typename ConstBufferSequence::const_iterator iter = buffers.begin();
-    typename ConstBufferSequence::const_iterator end = buffers.end();
-    size_t total_buffer_size = 0;
-    for (; iter != end; ++iter)
-    {
-      asio::const_buffer buffer(*iter);
-      total_buffer_size += asio::buffer_size(buffer);
-    }
-
-    if (total_buffer_size == 0)
+    if (asio::buffer_size(buffers) == 0)
     {
       get_io_service().post(detail::bind_handler(
             handler, asio::error_code(), 0));
@@ -375,27 +329,13 @@ private:
   template <typename ConstBufferSequence>
   std::size_t copy(const ConstBufferSequence& buffers)
   {
-    using namespace std; // For memcpy.
-
     std::size_t orig_size = storage_.size();
     std::size_t space_avail = storage_.capacity() - orig_size;
-    std::size_t bytes_copied = 0;
-
-    typename ConstBufferSequence::const_iterator iter = buffers.begin();
-    typename ConstBufferSequence::const_iterator end = buffers.end();
-    for (; iter != end && space_avail > 0; ++iter)
-    {
-      std::size_t bytes_avail = buffer_size(*iter);
-      std::size_t length = (bytes_avail < space_avail)
-        ? bytes_avail : space_avail;
-      storage_.resize(orig_size + bytes_copied + length);
-      memcpy(storage_.data() + orig_size + bytes_copied,
-          buffer_cast<const void*>(*iter), length);
-      bytes_copied += length;
-      space_avail -= length;
-    }
-
-    return bytes_copied;
+    std::size_t bytes_avail = asio::buffer_size(buffers);
+    std::size_t length = bytes_avail < space_avail ? bytes_avail : space_avail;
+    storage_.resize(orig_size + length);
+    return asio::buffer_copy(
+        storage_.data() + orig_size, buffers, length);
   }
 
   /// The next layer.

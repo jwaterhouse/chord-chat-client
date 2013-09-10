@@ -2,7 +2,7 @@
 // buffered_read_stream.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2011 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,14 +17,13 @@
 
 #include "asio/detail/config.hpp"
 #include <cstddef>
-#include <cstring>
-#include <boost/type_traits/remove_reference.hpp>
 #include "asio/buffered_read_stream_fwd.hpp"
 #include "asio/buffer.hpp"
 #include "asio/detail/bind_handler.hpp"
 #include "asio/detail/buffer_resize_guard.hpp"
 #include "asio/detail/buffered_stream_storage.hpp"
 #include "asio/detail/noncopyable.hpp"
+#include "asio/detail/type_traits.hpp"
 #include "asio/error.hpp"
 #include "asio/io_service.hpp"
 
@@ -50,7 +49,7 @@ class buffered_read_stream
 {
 public:
   /// The type of the next layer.
-  typedef typename boost::remove_reference<Stream>::type next_layer_type;
+  typedef typename remove_reference<Stream>::type next_layer_type;
 
   /// The type of the lowest layer.
   typedef typename next_layer_type::lowest_layer_type lowest_layer_type;
@@ -59,7 +58,7 @@ public:
   /// The default buffer size.
   static const std::size_t default_buffer_size = implementation_defined;
 #else
-  BOOST_STATIC_CONSTANT(std::size_t, default_buffer_size = 1024);
+  ASIO_STATIC_CONSTANT(std::size_t, default_buffer_size = 1024);
 #endif
 
   /// Construct, passing the specified argument to initialise the next layer.
@@ -94,13 +93,6 @@ public:
   const lowest_layer_type& lowest_layer() const
   {
     return next_layer_.lowest_layer();
-  }
-
-  /// (Deprecated: use get_io_service().) Get the io_service associated with
-  /// the object.
-  asio::io_service& io_service()
-  {
-    return next_layer_.get_io_service();
   }
 
   /// Get the io_service associated with the object.
@@ -226,16 +218,7 @@ public:
   template <typename MutableBufferSequence>
   std::size_t read_some(const MutableBufferSequence& buffers)
   {
-    typename MutableBufferSequence::const_iterator iter = buffers.begin();
-    typename MutableBufferSequence::const_iterator end = buffers.end();
-    size_t total_buffer_size = 0;
-    for (; iter != end; ++iter)
-    {
-      asio::mutable_buffer buffer(*iter);
-      total_buffer_size += asio::buffer_size(buffer);
-    }
-
-    if (total_buffer_size == 0)
+    if (asio::buffer_size(buffers) == 0)
       return 0;
 
     if (storage_.empty())
@@ -252,16 +235,7 @@ public:
   {
     ec = asio::error_code();
 
-    typename MutableBufferSequence::const_iterator iter = buffers.begin();
-    typename MutableBufferSequence::const_iterator end = buffers.end();
-    size_t total_buffer_size = 0;
-    for (; iter != end; ++iter)
-    {
-      asio::mutable_buffer buffer(*iter);
-      total_buffer_size += asio::buffer_size(buffer);
-    }
-
-    if (total_buffer_size == 0)
+    if (asio::buffer_size(buffers) == 0)
       return 0;
 
     if (storage_.empty() && !fill(ec))
@@ -293,24 +267,8 @@ public:
       }
       else
       {
-        using namespace std; // For memcpy.
-
-        std::size_t bytes_avail = storage_.size();
-        std::size_t bytes_copied = 0;
-
-        typename MutableBufferSequence::const_iterator iter = buffers_.begin();
-        typename MutableBufferSequence::const_iterator end = buffers_.end();
-        for (; iter != end && bytes_avail > 0; ++iter)
-        {
-          std::size_t max_length = buffer_size(*iter);
-          std::size_t length = (max_length < bytes_avail)
-            ? max_length : bytes_avail;
-          memcpy(buffer_cast<void*>(*iter),
-              storage_.data() + bytes_copied, length);
-          bytes_copied += length;
-          bytes_avail -= length;
-        }
-
+        std::size_t bytes_copied = asio::buffer_copy(
+            buffers_, storage_.data(), storage_.size());
         storage_.consume(bytes_copied);
         io_service_.dispatch(detail::bind_handler(handler_, ec, bytes_copied));
       }
@@ -329,16 +287,7 @@ public:
   void async_read_some(const MutableBufferSequence& buffers,
       ReadHandler handler)
   {
-    typename MutableBufferSequence::const_iterator iter = buffers.begin();
-    typename MutableBufferSequence::const_iterator end = buffers.end();
-    size_t total_buffer_size = 0;
-    for (; iter != end; ++iter)
-    {
-      asio::mutable_buffer buffer(*iter);
-      total_buffer_size += asio::buffer_size(buffer);
-    }
-
-    if (total_buffer_size == 0)
+    if (asio::buffer_size(buffers) == 0)
     {
       get_io_service().post(detail::bind_handler(
             handler, asio::error_code(), 0));
@@ -397,23 +346,8 @@ private:
   template <typename MutableBufferSequence>
   std::size_t copy(const MutableBufferSequence& buffers)
   {
-    using namespace std; // For memcpy.
-
-    std::size_t bytes_avail = storage_.size();
-    std::size_t bytes_copied = 0;
-
-    typename MutableBufferSequence::const_iterator iter = buffers.begin();
-    typename MutableBufferSequence::const_iterator end = buffers.end();
-    for (; iter != end && bytes_avail > 0; ++iter)
-    {
-      std::size_t max_length = buffer_size(*iter);
-      std::size_t length = (max_length < bytes_avail)
-        ? max_length : bytes_avail;
-      memcpy(buffer_cast<void*>(*iter), storage_.data() + bytes_copied, length);
-      bytes_copied += length;
-      bytes_avail -= length;
-    }
-
+    std::size_t bytes_copied = asio::buffer_copy(
+        buffers, storage_.data(), storage_.size());
     storage_.consume(bytes_copied);
     return bytes_copied;
   }
@@ -424,24 +358,7 @@ private:
   template <typename MutableBufferSequence>
   std::size_t peek_copy(const MutableBufferSequence& buffers)
   {
-    using namespace std; // For memcpy.
-
-    std::size_t bytes_avail = storage_.size();
-    std::size_t bytes_copied = 0;
-
-    typename MutableBufferSequence::const_iterator iter = buffers.begin();
-    typename MutableBufferSequence::const_iterator end = buffers.end();
-    for (; iter != end && bytes_avail > 0; ++iter)
-    {
-      std::size_t max_length = buffer_size(*iter);
-      std::size_t length = (max_length < bytes_avail)
-        ? max_length : bytes_avail;
-      memcpy(buffer_cast<void*>(*iter), storage_.data() + bytes_copied, length);
-      bytes_copied += length;
-      bytes_avail -= length;
-    }
-
-    return bytes_copied;
+    return asio::buffer_copy(buffers, storage_.data(), storage_.size());
   }
 
   /// The next layer.

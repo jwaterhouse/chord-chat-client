@@ -2,7 +2,7 @@
 // detail/buffer_sequence_adapter.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2011 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2013 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -17,6 +17,7 @@
 
 #include "asio/detail/config.hpp"
 #include "asio/buffer.hpp"
+#include "asio/detail/array_fwd.hpp"
 #include "asio/detail/socket_types.hpp"
 
 #include "asio/detail/push_options.hpp"
@@ -27,7 +28,7 @@ namespace detail {
 class buffer_sequence_adapter_base
 {
 protected:
-#if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   typedef WSABUF native_buffer_type;
 
   static void init_native_buffer(WSABUF& buf,
@@ -43,7 +44,7 @@ protected:
     buf.buf = const_cast<char*>(asio::buffer_cast<const char*>(buffer));
     buf.len = static_cast<ULONG>(asio::buffer_size(buffer));
   }
-#else // defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+#else // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   typedef iovec native_buffer_type;
 
   static void init_iov_base(void*& base, void* addr)
@@ -71,7 +72,7 @@ protected:
           asio::buffer_cast<const void*>(buffer)));
     iov.iov_len = asio::buffer_size(buffer);
   }
-#endif // defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+#endif // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
 };
 
 // Helper class to translate buffers into the native buffer representation.
@@ -80,11 +81,11 @@ class buffer_sequence_adapter
   : buffer_sequence_adapter_base
 {
 public:
-  explicit buffer_sequence_adapter(const Buffers& buffers)
+  explicit buffer_sequence_adapter(const Buffers& buffer_sequence)
     : count_(0), total_buffer_size_(0)
   {
-    typename Buffers::const_iterator iter = buffers.begin();
-    typename Buffers::const_iterator end = buffers.end();
+    typename Buffers::const_iterator iter = buffer_sequence.begin();
+    typename Buffers::const_iterator end = buffer_sequence.end();
     for (; iter != end && count_ < max_buffers; ++iter, ++count_)
     {
       Buffer buffer(*iter);
@@ -108,10 +109,10 @@ public:
     return total_buffer_size_ == 0;
   }
 
-  static bool all_empty(const Buffers& buffers)
+  static bool all_empty(const Buffers& buffer_sequence)
   {
-    typename Buffers::const_iterator iter = buffers.begin();
-    typename Buffers::const_iterator end = buffers.end();
+    typename Buffers::const_iterator iter = buffer_sequence.begin();
+    typename Buffers::const_iterator end = buffer_sequence.end();
     std::size_t i = 0;
     for (; iter != end && i < max_buffers; ++iter, ++i)
       if (asio::buffer_size(Buffer(*iter)) > 0)
@@ -119,10 +120,10 @@ public:
     return true;
   }
 
-  static void validate(const Buffers& buffers)
+  static void validate(const Buffers& buffer_sequence)
   {
-    typename Buffers::const_iterator iter = buffers.begin();
-    typename Buffers::const_iterator end = buffers.end();
+    typename Buffers::const_iterator iter = buffer_sequence.begin();
+    typename Buffers::const_iterator end = buffer_sequence.end();
     for (; iter != end; ++iter)
     {
       Buffer buffer(*iter);
@@ -130,10 +131,10 @@ public:
     }
   }
 
-  static Buffer first(const Buffers& buffers)
+  static Buffer first(const Buffers& buffer_sequence)
   {
-    typename Buffers::const_iterator iter = buffers.begin();
-    typename Buffers::const_iterator end = buffers.end();
+    typename Buffers::const_iterator iter = buffer_sequence.begin();
+    typename Buffers::const_iterator end = buffer_sequence.end();
     for (; iter != end; ++iter)
     {
       Buffer buffer(*iter);
@@ -158,10 +159,10 @@ class buffer_sequence_adapter<Buffer, asio::mutable_buffers_1>
 {
 public:
   explicit buffer_sequence_adapter(
-      const asio::mutable_buffers_1& buffers)
+      const asio::mutable_buffers_1& buffer_sequence)
   {
-    init_native_buffer(buffer_, Buffer(buffers));
-    total_buffer_size_ = asio::buffer_size(buffers);
+    init_native_buffer(buffer_, Buffer(buffer_sequence));
+    total_buffer_size_ = asio::buffer_size(buffer_sequence);
   }
 
   native_buffer_type* buffers()
@@ -179,19 +180,19 @@ public:
     return total_buffer_size_ == 0;
   }
 
-  static bool all_empty(const asio::mutable_buffers_1& buffers)
+  static bool all_empty(const asio::mutable_buffers_1& buffer_sequence)
   {
-    return asio::buffer_size(buffers) == 0;
+    return asio::buffer_size(buffer_sequence) == 0;
   }
 
-  static void validate(const asio::mutable_buffers_1& buffers)
+  static void validate(const asio::mutable_buffers_1& buffer_sequence)
   {
-    asio::buffer_cast<const void*>(buffers);
+    asio::buffer_cast<const void*>(buffer_sequence);
   }
 
-  static Buffer first(const asio::mutable_buffers_1& buffers)
+  static Buffer first(const asio::mutable_buffers_1& buffer_sequence)
   {
-    return Buffer(buffers);
+    return Buffer(buffer_sequence);
   }
 
 private:
@@ -205,10 +206,10 @@ class buffer_sequence_adapter<Buffer, asio::const_buffers_1>
 {
 public:
   explicit buffer_sequence_adapter(
-      const asio::const_buffers_1& buffers)
+      const asio::const_buffers_1& buffer_sequence)
   {
-    init_native_buffer(buffer_, Buffer(buffers));
-    total_buffer_size_ = asio::buffer_size(buffers);
+    init_native_buffer(buffer_, Buffer(buffer_sequence));
+    total_buffer_size_ = asio::buffer_size(buffer_sequence);
   }
 
   native_buffer_type* buffers()
@@ -226,25 +227,133 @@ public:
     return total_buffer_size_ == 0;
   }
 
-  static bool all_empty(const asio::const_buffers_1& buffers)
+  static bool all_empty(const asio::const_buffers_1& buffer_sequence)
   {
-    return asio::buffer_size(buffers) == 0;
+    return asio::buffer_size(buffer_sequence) == 0;
   }
 
-  static void validate(const asio::const_buffers_1& buffers)
+  static void validate(const asio::const_buffers_1& buffer_sequence)
   {
-    asio::buffer_cast<const void*>(buffers);
+    asio::buffer_cast<const void*>(buffer_sequence);
   }
 
-  static Buffer first(const asio::const_buffers_1& buffers)
+  static Buffer first(const asio::const_buffers_1& buffer_sequence)
   {
-    return Buffer(buffers);
+    return Buffer(buffer_sequence);
   }
 
 private:
   native_buffer_type buffer_;
   std::size_t total_buffer_size_;
 };
+
+template <typename Buffer, typename Elem>
+class buffer_sequence_adapter<Buffer, boost::array<Elem, 2> >
+  : buffer_sequence_adapter_base
+{
+public:
+  explicit buffer_sequence_adapter(
+      const boost::array<Elem, 2>& buffer_sequence)
+  {
+    init_native_buffer(buffers_[0], Buffer(buffer_sequence[0]));
+    init_native_buffer(buffers_[1], Buffer(buffer_sequence[1]));
+    total_buffer_size_ = asio::buffer_size(buffer_sequence[0])
+      + asio::buffer_size(buffer_sequence[1]);
+  }
+
+  native_buffer_type* buffers()
+  {
+    return buffers_;
+  }
+
+  std::size_t count() const
+  {
+    return 2;
+  }
+
+  bool all_empty() const
+  {
+    return total_buffer_size_ == 0;
+  }
+
+  static bool all_empty(const boost::array<Elem, 2>& buffer_sequence)
+  {
+    return asio::buffer_size(buffer_sequence[0]) == 0
+      && asio::buffer_size(buffer_sequence[1]) == 0;
+  }
+
+  static void validate(const boost::array<Elem, 2>& buffer_sequence)
+  {
+    asio::buffer_cast<const void*>(buffer_sequence[0]);
+    asio::buffer_cast<const void*>(buffer_sequence[1]);
+  }
+
+  static Buffer first(const boost::array<Elem, 2>& buffer_sequence)
+  {
+    return Buffer(asio::buffer_size(buffer_sequence[0]) != 0
+        ? buffer_sequence[0] : buffer_sequence[1]);
+  }
+
+private:
+  native_buffer_type buffers_[2];
+  std::size_t total_buffer_size_;
+};
+
+#if defined(ASIO_HAS_STD_ARRAY)
+
+template <typename Buffer, typename Elem>
+class buffer_sequence_adapter<Buffer, std::array<Elem, 2> >
+  : buffer_sequence_adapter_base
+{
+public:
+  explicit buffer_sequence_adapter(
+      const std::array<Elem, 2>& buffer_sequence)
+  {
+    init_native_buffer(buffers_[0], Buffer(buffer_sequence[0]));
+    init_native_buffer(buffers_[1], Buffer(buffer_sequence[1]));
+    total_buffer_size_ = asio::buffer_size(buffer_sequence[0])
+      + asio::buffer_size(buffer_sequence[1]);
+  }
+
+  native_buffer_type* buffers()
+  {
+    return buffers_;
+  }
+
+  std::size_t count() const
+  {
+    return 2;
+  }
+
+  bool all_empty() const
+  {
+    return total_buffer_size_ == 0;
+  }
+
+  static bool all_empty(const std::array<Elem, 2>& buffer_sequence)
+  {
+    return asio::buffer_size(buffer_sequence[0]) == 0
+      && asio::buffer_size(buffer_sequence[1]) == 0;
+  }
+
+  static void validate(const std::array<Elem, 2>& buffer_sequence)
+  {
+    asio::buffer_cast<const void*>(buffer_sequence[0]);
+    asio::buffer_cast<const void*>(buffer_sequence[1]);
+  }
+
+  static Buffer first(const std::array<Elem, 2>& buffer_sequence)
+  {
+    return Buffer(asio::buffer_size(buffer_sequence[0]) != 0
+        ? buffer_sequence[0] : buffer_sequence[1]);
+  }
+
+private:
+  native_buffer_type buffers_[2];
+  std::size_t total_buffer_size_;
+};
+
+#endif // defined(ASIO_HAS_STD_ARRAY)
 
 } // namespace detail
 } // namespace asio

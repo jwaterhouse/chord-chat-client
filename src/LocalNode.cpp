@@ -29,6 +29,18 @@ LocalNode::~LocalNode()
         delete _finger;
         _finger = 0;
     }
+    if (_t != 0)
+    {
+        _stop = true;
+        _t->join();
+        delete _t;
+        _t = 0;
+    }
+    if (_m != 0)
+    {
+        delete _m;
+        _m = 0;
+    }
 }
 
 void LocalNode::init()
@@ -36,6 +48,9 @@ void LocalNode::init()
     _finger = new FingerTable(*this);
     setPredecessor(0);
     setSuccessor(this);
+
+    // start the thread
+    _t = new std::thread(listener, this);
 }
 
 INode* LocalNode::findPredecessor(const ID& id)
@@ -176,4 +191,15 @@ INode* LocalNode::getSuccessor()
 void LocalNode::setSuccessor(INode* n)
 {
     _finger->setNode(0, n);
+}
+
+void LocalNode::listener(LocalNode* n)
+{
+    while(1)
+    {
+        // check if the thread needs to exit
+        if (n->getStop()) break;
+
+        // check if we have received a message
+    }
 }

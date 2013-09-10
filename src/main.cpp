@@ -31,5 +31,7 @@ int main(int argc, char* argv[])
     SHA1::hexPrinter((byte*)(n3->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
+    n1->~LocalNode();
+
     return 0;
 }

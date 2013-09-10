@@ -15,27 +15,6 @@ ID::ID(const ID& other)
 
 ID::ID(const std::string& ip, unsigned int port)
 {
-    // Create the node's ID as a sha-1 of it's ip and port (e.g. "192.168.1.1:55")
-    //std::ostringstream stream;
-    //stream << port;
-    //std::string source = stream.str();
-
-    //CryptoPP::SHA1 sha1;
-    //std::string hash = "";
-    //CryptoPP::StringSource(source, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(new CryptoPP::StringSink(hash))));
-    //id = hash;
-
-    //CryptoPP::SHA1 hash;
-    //hash.Restart();
-    //hash.Update((byte*)ip.c_str(), ip.length());
-    //byte portByteArr[4];
-    //portByteArr[0] = (byte)port;
-    //portByteArr[1] = (byte)(port >> 8);
-    //portByteArr[2] = (byte)(port >> 16);
-    //portByteArr[3] = (byte)(port >> 24);
-    //hash.Update(portByteArr, 4);
-    //hash.Final(id);
-
     SHA1* sha1 = new SHA1();
 	sha1->addBytes(ip.c_str(), ip.length());
 	byte portByteArr[4];
@@ -84,6 +63,7 @@ byte& ID::operator[](int index)
     }
     return _id[index];
 }
+
 const byte& ID::operator[](int index) const
 {
     if (index < 0 || index >= ID_LEN)

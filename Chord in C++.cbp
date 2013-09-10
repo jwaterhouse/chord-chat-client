@@ -31,6 +31,7 @@
 		<Compiler>
 			<Add option="-std=c++0x" />
 			<Add option="-Wall" />
+			<Add option="-lpthread" />
 			<Add directory="vendor" />
 		</Compiler>
 		<Unit filename="include/FingerTable.h" />
