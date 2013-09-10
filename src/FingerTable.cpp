@@ -2,9 +2,11 @@
 #include <cstring>
 #include "../include/FingerTable.h"
 
-FingerTable::FingerTable(const ID& id)
+FingerTable::FingerTable(INode& n)
 {
-    _id = new ID(id);
+    _id = new ID(n.getID());
+    //for (int i = 0; i < M; ++i)
+    //   _entries[i] = &n;
 }
 
 FingerTable::~FingerTable()
@@ -12,10 +14,10 @@ FingerTable::~FingerTable()
     /*
     for(int i = 0; i < M; ++i)
     {
-        if (entries[i] != 0)
+        if (_entries[i] != 0)
         {
-            delete entries[i];
-            entries[i] = 0;
+            delete _entries[i];
+            _entries[i] = 0;
         }
     }
     */
@@ -57,5 +59,6 @@ void FingerTable::setNode(unsigned int k, INode* n)
         _entries[k] = 0;
     }
     */
+
     _entries[k] = n;
 }

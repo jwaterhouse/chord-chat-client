@@ -10,12 +10,9 @@ class LocalNode : public INode
     public:
         LocalNode(const std::string&, unsigned int);
         LocalNode(const std::string&, unsigned int, INode*);
+        LocalNode(const INode&);
         virtual ~LocalNode();
 
-    private:
-        void init(const std::string&, unsigned int);
-
-    protected:
         virtual INode* findPredecessor(const ID&);
         virtual INode* findSuccessor(const ID&);
         virtual INode* closestPrecedingFinger(const ID&);
@@ -33,6 +30,13 @@ class LocalNode : public INode
         virtual INode* getSuccessor();
         virtual void setSuccessor(INode* n);
 
+        virtual INode* clone() const { return new LocalNode(*this); }
+
+    private:
+        void init();
+        void checkPredecessor();
+
+    protected:
         INode* _predecessor = 0;
         FingerTable* _finger = 0;
 

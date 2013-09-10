@@ -10,16 +10,25 @@ int main(int argc, char* argv[])
     std::cout << ip1 << "\n";
 
     LocalNode* n1 = new LocalNode(ip1, 22);
+    n1->stabilize();
 
     std::cout << "ID 1: ";
     SHA1::hexPrinter((byte*)(n1->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
     std::string ip2("192.168.2.2");
-    LocalNode* n2 = new LocalNode(ip2, 23, (INode*)n1);
+    LocalNode* n2 = new LocalNode(ip2, 23, n1);
+    n2->stabilize();
 
     std::cout << "ID 2: ";
     SHA1::hexPrinter((byte*)(n2->getID().c_str()), ID_LEN);
+    std::cout << "\n";
+
+    //INode* n3 = n2->findPredecessor(n1->getID())->getSuccessor();
+    INode* n3 = n1->getSuccessor();
+
+    std::cout << "ID 3: ";
+    SHA1::hexPrinter((byte*)(n3->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
     return 0;

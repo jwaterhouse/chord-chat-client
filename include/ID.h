@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include "../include/sha1.h"
+//#include "../include/INode.h"
 
 #define ID_LEN 20
 #define M 160
@@ -20,6 +21,9 @@ class ID
         virtual ~ID();
 
         bool isInInterval(const ID&, const ID&) const;
+        //bool isInInterval(const INode& n, const ID& id) const { return isInInterval(n.getID(), id); }
+        //bool isInInterval(const ID& id, const INode& n) const { return isInInterval(id, n.getID()); }
+        //bool isInInterval(const INode& n1, const INode& n2) const { return isInInterval(n1.getID(), n2.getID()); }
         const byte* c_str() const;
 
         byte& operator[](int);

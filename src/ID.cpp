@@ -145,8 +145,8 @@ bool operator==(const ID& lhs, const ID& rhs)
 bool operator!=(const ID& lhs, const ID& rhs) { return !operator==(lhs,rhs); }
 bool operator<(const ID& lhs, const ID& rhs)
 {
-    // most significant byte is at index 0
-    for(int i = 0; i < ID_LEN; ++i)
+    // most significant byte is at index ID_LEN
+    for(int i = ID_LEN - 1; i >= 0; ++i)
         if (lhs[i] < rhs[i]) return true;
     return false;
 }

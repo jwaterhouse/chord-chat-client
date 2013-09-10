@@ -66,9 +66,11 @@ class INode
         virtual void setPredecessor(INode* n) = 0;
         virtual INode* getSuccessor() = 0;
         virtual void setSuccessor(INode* n) = 0;
-        const ID getID() const { return *_id; }
-        const std::string* getIP() const { return _ip; }
+        const ID getID() const { return ID(*_id); }
+        const std::string getIP() const { return std::string(*_ip); }
         unsigned int getPort() const { return _port; }
+
+        virtual INode* clone() const = 0;
 
     protected:
         ID* _id = 0;

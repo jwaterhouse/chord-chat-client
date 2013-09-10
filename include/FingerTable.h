@@ -6,7 +6,7 @@
 class FingerTable
 {
     public:
-        FingerTable(const ID&);
+        FingerTable(INode&);
         virtual ~FingerTable();
 
         ID start(unsigned int);

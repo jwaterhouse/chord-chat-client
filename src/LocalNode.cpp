@@ -3,13 +3,18 @@
 
 LocalNode::LocalNode(const std::string& ip, unsigned int port) : INode::INode(ip, port)
 {
-    init(ip, port);
+    init();
 }
 
 LocalNode::LocalNode(const std::string& ip, unsigned int port, INode* n) : INode::INode(ip, port)
 {
-    init(ip, port);
+    init();
     join(n);
+}
+
+LocalNode::LocalNode(const INode& n) : INode::INode(n.getIP(), n.getPort())
+{
+    init();
 }
 
 LocalNode::~LocalNode()
@@ -26,9 +31,9 @@ LocalNode::~LocalNode()
     }
 }
 
-void LocalNode::init(const std::string& ip, unsigned int port)
+void LocalNode::init()
 {
-    _finger = new FingerTable(*_id);
+    _finger = new FingerTable(*this);
     setPredecessor(0);
     setSuccessor(this);
 }
@@ -36,8 +41,8 @@ void LocalNode::init(const std::string& ip, unsigned int port)
 INode* LocalNode::findPredecessor(const ID& id)
 {
     INode* n = this;
-    while(!(getID().isInInterval(n->getID(), n->getSuccessor()->getID())
-            || getID() == n->getSuccessor()->getID()))
+    while (!(id.isInInterval(n->getID(), n->getSuccessor()->getID())
+            || id == n->getSuccessor()->getID()))
     {
         n = n->closestPrecedingFinger(id);
     }
@@ -52,11 +57,10 @@ INode* LocalNode::findSuccessor(const ID& id)
 
 INode* LocalNode::closestPrecedingFinger(const ID& id)
 {
-    for(int i = M - 1; i >= 0; --i)
+    for (int i = M - 1; i >= 0; --i)
     {
-        INode* n = _finger->node(i);
-        if (_finger->node(i)->getID().isInInterval(n->getID(), getID()))
-            return n;
+        if (_finger->node(i)->getID().isInInterval(getID(), id))
+            return _finger->node(i);
     }
     return this;
 }
@@ -89,7 +93,7 @@ void LocalNode::initFingerTable(INode* n)
     setPredecessor(getSuccessor()->getPredecessor());
     getSuccessor()->setPredecessor(this);
 
-    for(int i = 0; i < M; ++i)
+    for (int i = 0; i < M; ++i)
     {
         ID si = _finger->start(i + 1);
         if (si.isInInterval(getID(), _finger->node(i)->getID())
@@ -106,7 +110,7 @@ void LocalNode::initFingerTable(INode* n)
 
 void LocalNode::updateOthers()
 {
-    for(int i = 0; i < M; ++i)
+    for (int i = 0; i < M; ++i)
     {
         byte b[ID_LEN];
         b[ID_LEN - i / 8 - 1] = (0x01 << (i % 8));
@@ -128,26 +132,22 @@ void LocalNode::updateFingerTable(INode* s, unsigned int i)
         if (getPredecessor()) getPredecessor()->updateFingerTable(s, i);
     }
 }
+
 void LocalNode::stabilize()
 {
     INode* x = getSuccessor()->getPredecessor();
-    if (x->getID().isInInterval(getID(), getSuccessor()->getID()))
+    if (x != 0 && x->getID().isInInterval(getID(), getSuccessor()->getID()))
     {
         setSuccessor(x);
     }
-    getSuccessor()->notify(x);
+    getSuccessor()->notify(this);
 }
 
 void LocalNode::notify(INode* n)
 {
-    if (getPredecessor() == 0)
-        setPredecessor(n);
-    else
+    if (getPredecessor() == 0 || n->getID().isInInterval(getPredecessor()->getID(), getID()))
     {
-        if (n->getID().isInInterval(getPredecessor()->getID(), getID()))
-        {
-            setPredecessor(n);
-        }
+        setPredecessor(n);
     }
 }
 
