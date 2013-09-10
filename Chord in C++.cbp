@@ -13,6 +13,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DASIO_STANDALONE" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -31,9 +32,12 @@
 		<Compiler>
 			<Add option="-std=c++0x" />
 			<Add option="-Wall" />
-			<Add option="-lpthread" />
-			<Add directory="vendor" />
+			<Add option="-pthread" />
+			<Add directory="vendor/asio/include" />
 		</Compiler>
+		<Linker>
+			<Add option="-pthread" />
+		</Linker>
 		<Unit filename="include/FingerTable.h" />
 		<Unit filename="include/ID.h" />
 		<Unit filename="include/INode.h" />

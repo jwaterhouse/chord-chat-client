@@ -195,11 +195,24 @@ void LocalNode::setSuccessor(INode* n)
 
 void LocalNode::listener(LocalNode* n)
 {
+    // setup my network listener
+    asio::io_service io_service;
+    asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), n->getPort());
+    asio::ip::tcp::acceptor acceptor(io_service, endpoint);
+    asio::ip::tcp::socket sock(io_service);
+    std::string data = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, world!";
+
+    acceptor.listen();
+
     while(1)
     {
         // check if the thread needs to exit
         if (n->getStop()) break;
 
-        // check if we have received a message
+        // check if we have received an rpc message
+        std::cout << "accept ";
+        acceptor.accept(sock);
+        std::cout << "finished\n";
+
     }
 }

@@ -1,10 +1,10 @@
 #ifndef LOCALNODE_H
 #define LOCALNODE_H
 
+#include <iostream>
 #include <thread>
 #include <mutex>
 #include <asio.hpp>
-//#include <boost/asio/ip/address.hpp>
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
