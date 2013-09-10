@@ -1,5 +1,5 @@
 /bin/**/*
 /obj/**/*
-/*.layout
-/*.depend
+/**/*.layout
+/**/*.depend
 
