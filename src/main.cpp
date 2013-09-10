@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 
     std::cout << ip1 << "\n";
 
-    LocalNode* n1 = new LocalNode(ip1, 22);
+    LocalNode* n1 = new LocalNode(ip1, 1234);
     n1->stabilize();
 
     std::cout << "ID 1: ";
@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     std::cout << "\n";
 
     std::string ip2("192.168.2.2");
-    LocalNode* n2 = new LocalNode(ip2, 23, n1);
+    LocalNode* n2 = new LocalNode(ip2, 1235, n1);
     n2->stabilize();
 
     std::cout << "ID 2: ";
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     SHA1::hexPrinter((byte*)(n3->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
-    n1->~LocalNode();
+    while(1) { }
 
     return 0;
 }

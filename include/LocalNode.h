@@ -8,6 +8,8 @@
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
+#define TIME_PERIOD 1.0 // time to periodically call some methods, in seconds
+
 class LocalNode : public INode
 {
     public:
@@ -39,7 +41,7 @@ class LocalNode : public INode
     private:
         void init();
         void checkPredecessor();
-        static void listener(LocalNode*);
+        static void periodic(LocalNode*);
 
     protected:
         INode* _predecessor = 0;
