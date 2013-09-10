@@ -2,6 +2,7 @@
 /obj/**/*
 *.layout
 *.depend
+*.cstore_file_list
 
 # Compiled source #
 ###################
