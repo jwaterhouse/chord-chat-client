@@ -4,7 +4,7 @@
 #include <string>
 #include "../include/ID.h"
 
-enum class RPCCodes
+enum class RPCCode
 {
     FIND_PREDECESSOR,
     FIND_SUCCESSOR,
@@ -20,8 +20,7 @@ enum class RPCCodes
     SET_PREDECESSOR,
     GET_SUCCESSOR,
     SET_SUCCESSOR,
-    GET_ID,
-    INVALID_METHOD
+    GET_ID
 };
 
 class INode
@@ -71,6 +70,7 @@ class INode
         unsigned int getPort() const { return _port; }
 
         virtual INode* clone() const = 0;
+        virtual std::string serialize() = 0;
 
     protected:
         ID* _id = 0;

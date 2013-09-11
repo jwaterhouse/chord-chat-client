@@ -3,12 +3,14 @@
 
 #include <iostream>
 #include <thread>
+#include <functional>
 #include <mutex>
 #include <asio.hpp>
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
 #define TIME_PERIOD 1.0 // time to periodically call some methods, in seconds
+#define MAX_DATA_LENGTH 1024
 
 class LocalNode : public INode
 {
@@ -34,19 +36,23 @@ class LocalNode : public INode
         virtual void setPredecessor(INode* n);
         virtual INode* getSuccessor();
         virtual void setSuccessor(INode* n);
-        bool getStop() { return _stop; }
 
         virtual INode* clone() const { return new LocalNode(*this); }
+        virtual std::string serialize();
 
     private:
         void init();
         void checkPredecessor();
-        static void periodic(LocalNode*);
+        void periodic();
+        void server();
+        void handleRequest(asio::ip::tcp::socket&, std::string);
 
     protected:
         INode* _predecessor = 0;
         FingerTable* _finger = 0;
-        std::thread* _t = 0;
+        std::thread* _periodicThread = 0;
+        std::thread* _serverThread = 0;
+        bool _serverRunning = true;
         std::mutex* _m = 0;
         bool _stop = false;
 };
