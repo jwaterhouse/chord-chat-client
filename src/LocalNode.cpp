@@ -1,6 +1,7 @@
 #include "../include/LocalNode.h"
 #include <cstdlib>
 #include <ctime>
+#include "../include/RemoteNode.h"
 
 LocalNode::LocalNode(const std::string& ip, unsigned int port) : INode::INode(ip, port)
 {
@@ -49,6 +50,11 @@ LocalNode::~LocalNode()
         delete _m;
         _m = 0;
     }
+    if (_socketM != 0)
+    {
+        delete _socketM;
+        _socketM = 0;
+    }
 }
 
 void LocalNode::init()
@@ -56,6 +62,10 @@ void LocalNode::init()
     _finger = new FingerTable(*this);
     setPredecessor(0);
     setSuccessor(this);
+
+    // initialise the mutexes
+    _m = new std::mutex();
+    _socketM = new std::mutex();
 
     // start the threads
     _periodicThread = new std::thread(&LocalNode::periodic, this);
@@ -137,7 +147,7 @@ void LocalNode::updateOthers()
 {
     for (int i = 0; i < M; ++i)
     {
-        byte b[ID_LEN];
+        char b[ID_LEN];
         b[ID_LEN - i / 8 - 1] = (0x01 << (i % 8));
 
         ID bID(b);
@@ -201,16 +211,6 @@ INode* LocalNode::getSuccessor()
 void LocalNode::setSuccessor(INode* n)
 {
     _finger->setNode(0, n);
-}
-
-std::string LocalNode::serialize()
-{
-    char portCharArr[4];
-    portCharArr[0] = (char)_port;
-    portCharArr[1] = (char)(_port >> 8);
-    portCharArr[2] = (char)(_port >> 16);
-    portCharArr[3] = (char)(_port >> 24);
-    return getIP() + std::string(portCharArr, 4);
 }
 
 void LocalNode::periodic()
@@ -278,11 +278,11 @@ void LocalNode::server()
             //std::thread t(&LocalNode::handleRequest, this, socket, message);
             //std::thread t(std::bind(&LocalNode::handleRequest, this, socket, message));
             //t.detach();
-            handleRequest(socket, message);
+            std::string response = handleRequest(message);
 
             //std::string message("Hello from server\n");
-            //asio::write(socket, asio::buffer(message));
-            //socket.close();
+            asio::write(socket, asio::buffer(response));
+            socket.close();
         }
     }
     catch(std::exception& e)
@@ -292,7 +292,7 @@ void LocalNode::server()
     _serverRunning = false;
 }
 
-void LocalNode::handleRequest(asio::ip::tcp::socket& socket, std::string message)
+std::string LocalNode::handleRequest(std::string message)
 {
     std::string response = "";
 
@@ -300,64 +300,108 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket, std::string message
     switch(messageCode)
     {
         case RPCCode::FIND_PREDECESSOR:
-
-            break;
+        {
+            if (message.length() < 21)
+            {
+                //error - message is too small
+            }
+            ID id((char*)(message.c_str() + 1));
+            INode* n = findPredecessor(id);
+            response = n->serialize();
+        }
+        break;
         case RPCCode::FIND_SUCCESSOR:
-
-            break;
+        {
+            if (message.length() < 21)
+            {
+                //error - message is too small
+            }
+            ID id((char*)(message.c_str() + 1));
+            INode* n = findSuccessor(id);
+            response = n->serialize();
+        }
+        break;
         case RPCCode::CLOSEST_PRECEDING_FINGER:
         {
             if (message.length() < 21)
             {
                 //error - message is too small
             }
-
-            INode* n = closestPrecedingFinger((byte*)(message.c_str() + 1));
+            ID id((char*)(message.c_str() + 1));
+            INode* n = closestPrecedingFinger(id);
             response = n->serialize();
         }
         break;
         case RPCCode::JOIN:
-
-            break;
+        {
+            std::cerr << "Not yet implemented." << std::endl;
+        }
+        break;
         case RPCCode::INIT_FINGER_TABLE:
-
-            break;
+        {
+            std::cerr << "Not yet implemented." << std::endl;
+        }
+        break;
         case RPCCode::UPDATE_OTHERS:
-
-            break;
+        {
+            std::cerr << "Not yet implemented." << std::endl;
+        }
+        break;
         case RPCCode::UPDATE_FINGER_TABLE:
-
-            break;
+        {
+            std::cerr << "Not yet implemented." << std::endl;
+        }
+        break;
         case RPCCode::STABILIZE:
-
-            break;
+        {
+            std::cerr << "Not yet implemented." << std::endl;
+        }
+        break;
         case RPCCode::NOTIFY:
-
-            break;
+        {
+            INode* n = new RemoteNode(message.c_str() + 1, message.length() - 1);
+            notify(n);
+        }
+        break;
         case RPCCode::FIX_FINGER:
-
-            break;
+        {
+            std::cerr << "Not yet implemented." << std::endl;
+        }
+        break;
         case RPCCode::GET_PREDECESSOR:
-
-            break;
+        {
+            response = getPredecessor()->serialize();
+        }
+        break;
         case RPCCode::SET_PREDECESSOR:
-
-            break;
+        {
+            INode* n = new RemoteNode(message.c_str() + 1, message.length() - 1);
+            setPredecessor(n);
+        }
+        break;
         case RPCCode::GET_SUCCESSOR:
-
-            break;
+        {
+            response = getSuccessor()->serialize();;
+        }
+        break;
         case RPCCode::SET_SUCCESSOR:
-
-            break;
+        {
+            INode* n = new RemoteNode(message.c_str() + 1, message.length() - 1);
+            setSuccessor(n);
+        }
+        break;
         case RPCCode::GET_ID:
-
-            break;
+        {
+            response = std::string(getID().c_str(), ID_LEN);
+        }
+        break;
         default:
             std::cerr << "Error: Invalid RPC code received - " << (int)messageCode << std::endl;
     }
 
     // respond if necessary and close the socket
-    if (response != "")
-        asio::write(socket, asio::buffer(response));
-    socket.close();
+    //if (response != "")
+    //   asio::write(socket.get(), asio::buffer(response));
+    //socket.get().close();
+    return std::string(response);
 }

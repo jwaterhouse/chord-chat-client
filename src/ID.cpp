@@ -1,7 +1,7 @@
 #include <stdlib.h>     /* malloc, free, rand */
 #include "../include/ID.h"
 
-ID::ID(const byte* id)
+ID::ID(const char* id)
 {
     for (int i = 0; i < ID_LEN; ++i)
         _id[i] = id[i];
@@ -17,15 +17,15 @@ ID::ID(const std::string& ip, unsigned int port)
 {
     SHA1* sha1 = new SHA1();
 	sha1->addBytes(ip.c_str(), ip.length());
-	byte portByteArr[4];
-    portByteArr[0] = (byte)port;
-    portByteArr[1] = (byte)(port >> 8);
-    portByteArr[2] = (byte)(port >> 16);
-    portByteArr[3] = (byte)(port >> 24);
+	char portByteArr[4];
+    portByteArr[0] = (char)port;
+    portByteArr[1] = (char)(port >> 8);
+    portByteArr[2] = (char)(port >> 16);
+    portByteArr[3] = (char)(port >> 24);
     sha1->addBytes((const char*)portByteArr, 4);
 
-	byte* digest = sha1->getDigest();
-	for (int i = 0; i < ID_LEN; ++i) _id[i] = digest[i];
+	unsigned char* digest = sha1->getDigest();
+	for (int i = 0; i < ID_LEN; ++i) _id[i] = (char)digest[i];
 	free(digest);
 	delete sha1;
 }
@@ -50,12 +50,12 @@ bool ID::isInInterval(const ID& lower, const ID& upper) const
     return false;
 }
 
-const byte* ID::c_str() const
+const char* ID::c_str() const
 {
     return _id;
 }
 
-byte& ID::operator[](int index)
+char& ID::operator[](int index)
 {
     if (index < 0 || index >= ID_LEN)
     {
@@ -64,7 +64,7 @@ byte& ID::operator[](int index)
     return _id[index];
 }
 
-const byte& ID::operator[](int index) const
+const char& ID::operator[](int index) const
 {
     if (index < 0 || index >= ID_LEN)
     {
@@ -76,12 +76,12 @@ const byte& ID::operator[](int index) const
 
 ID& ID::operator+=(const ID& other)
 {
-    byte overflow = 0x00;
+    char overflow = 0x00;
     for(int i = 0; i < ID_LEN; ++i)
     {
         unsigned int val = (unsigned int)_id[i] + (unsigned int)other[i] + (unsigned int)overflow;
-        _id[i] = (byte)val;
-        overflow = (byte)(val >> 8) & 0x01;
+        _id[i] = (char)val;
+        overflow = (char)(val >> 8) & 0x01;
     }
     return *this;
 }
@@ -93,17 +93,17 @@ ID operator+(ID& lhs, const ID& rhs)
 
 ID& ID::operator-=(const ID& other)
 {
-    byte temp[ID_LEN];
+    char temp[ID_LEN];
     temp[0] = 0x01;
     for(int i = 0; i < ID_LEN; ++i)
         _id[i] = _id[i] ^ 0xff;
 
-    byte overflow = 0x00;
+    char overflow = 0x00;
     for(int i = 0; i < ID_LEN; ++i)
     {
         unsigned int val = (unsigned int)_id[i] + (unsigned int)temp[i] + (unsigned int)overflow;
-        _id[i] = (byte)val;
-        overflow = (byte)(val >> 8) & 0x01;
+        _id[i] = (char)val;
+        overflow = (char)(val >> 8) & 0x01;
     }
 
     *this += other;
@@ -125,7 +125,7 @@ bool operator==(const ID& lhs, const ID& rhs)
 bool operator!=(const ID& lhs, const ID& rhs) { return !operator==(lhs,rhs); }
 bool operator<(const ID& lhs, const ID& rhs)
 {
-    // most significant byte is at index ID_LEN
+    // most significant char is at index ID_LEN
     for(int i = ID_LEN - 1; i >= 0; ++i)
         if (lhs[i] < rhs[i]) return true;
     return false;

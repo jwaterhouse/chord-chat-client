@@ -9,13 +9,11 @@
 #define ID_LEN 20
 #define M 160
 
-typedef unsigned char byte;
-
 class ID
 {
     public:
         ID() { };
-        ID(const byte*);
+        ID(const char*);
         ID(const ID&);
         ID(const std::string&, unsigned int);
         virtual ~ID();
@@ -24,10 +22,10 @@ class ID
         //bool isInInterval(const INode& n, const ID& id) const { return isInInterval(n.getID(), id); }
         //bool isInInterval(const ID& id, const INode& n) const { return isInInterval(id, n.getID()); }
         //bool isInInterval(const INode& n1, const INode& n2) const { return isInInterval(n1.getID(), n2.getID()); }
-        const byte* c_str() const;
+        const char* c_str() const;
 
-        byte& operator[](int);
-        const byte& operator[](int) const;
+        char& operator[](int);
+        const char& operator[](int) const;
         ID& operator+=(const ID&);
         friend ID operator+(ID&, const ID&);
         ID& operator-=(const ID&);
@@ -40,7 +38,7 @@ class ID
 
     protected:
     private:
-        byte _id[ID_LEN] = {0x00};
+        char _id[ID_LEN] = {0x00};
 };
 
 #endif // ID_H

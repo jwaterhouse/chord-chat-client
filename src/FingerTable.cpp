@@ -35,7 +35,7 @@ ID FingerTable::start(unsigned int k)
     {
         //error
     }
-    byte b[ID_LEN];
+    char b[ID_LEN];
     b[ID_LEN - k / 8 - 1] = (0x01 << (k % 8));
     ID bID(b);
 

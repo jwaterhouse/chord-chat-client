@@ -10,7 +10,6 @@
 #include "../include/FingerTable.h"
 
 #define TIME_PERIOD 1.0 // time to periodically call some methods, in seconds
-#define MAX_DATA_LENGTH 1024
 
 class LocalNode : public INode
 {
@@ -33,19 +32,18 @@ class LocalNode : public INode
 
         // Getters and setters;
         virtual INode* getPredecessor();
-        virtual void setPredecessor(INode* n);
+        virtual void setPredecessor(INode*);
         virtual INode* getSuccessor();
-        virtual void setSuccessor(INode* n);
+        virtual void setSuccessor(INode*);
 
         virtual INode* clone() const { return new LocalNode(*this); }
-        virtual std::string serialize();
 
     private:
         void init();
         void checkPredecessor();
         void periodic();
         void server();
-        void handleRequest(asio::ip::tcp::socket&, std::string);
+        std::string handleRequest(std::string);
 
     protected:
         INode* _predecessor = 0;
@@ -54,6 +52,7 @@ class LocalNode : public INode
         std::thread* _serverThread = 0;
         bool _serverRunning = true;
         std::mutex* _m = 0;
+        std::mutex* _socketM = 0;
         bool _stop = false;
 };
 

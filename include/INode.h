@@ -4,6 +4,8 @@
 #include <string>
 #include "../include/ID.h"
 
+#define MAX_DATA_LENGTH 1024
+
 enum class RPCCode
 {
     FIND_PREDECESSOR,
@@ -26,7 +28,7 @@ enum class RPCCode
 class INode
 {
     public:
-        //INode() { };
+        INode() { };
         INode(const std::string& ip, unsigned int port)
         {
             _ip = new std::string(ip.c_str(), ip.length());
@@ -62,15 +64,24 @@ class INode
 
         // Getters and setters;
         virtual INode* getPredecessor() = 0;
-        virtual void setPredecessor(INode* n) = 0;
+        virtual void setPredecessor(INode*) = 0;
         virtual INode* getSuccessor() = 0;
-        virtual void setSuccessor(INode* n) = 0;
+        virtual void setSuccessor(INode*) = 0;
         const ID getID() const { return ID(*_id); }
         const std::string getIP() const { return std::string(*_ip); }
         unsigned int getPort() const { return _port; }
 
         virtual INode* clone() const = 0;
-        virtual std::string serialize() = 0;
+        virtual std::string serialize()
+        {
+            char portCharArr[4];
+            portCharArr[0] = (char)_port;
+            portCharArr[1] = (char)(_port >> 8);
+            portCharArr[2] = (char)(_port >> 16);
+            portCharArr[3] = (char)(_port >> 24);
+            char ipLen = (char)(getIP().length());
+            return std::string(&ipLen) + getIP() + std::string(portCharArr, 4);
+        }
 
     protected:
         ID* _id = 0;

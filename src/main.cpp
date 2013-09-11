@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     n1->stabilize();
 
     std::cout << "ID 1: ";
-    SHA1::hexPrinter((byte*)(n1->getID().c_str()), ID_LEN);
+    SHA1::hexPrinter((unsigned char*)(n1->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
     std::string ip2("192.168.2.2");
@@ -21,14 +21,14 @@ int main(int argc, char* argv[])
     n2->stabilize();
 
     std::cout << "ID 2: ";
-    SHA1::hexPrinter((byte*)(n2->getID().c_str()), ID_LEN);
+    SHA1::hexPrinter((unsigned char*)(n2->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
     //INode* n3 = n2->findPredecessor(n1->getID())->getSuccessor();
     INode* n3 = n1->getSuccessor();
 
     std::cout << "ID 3: ";
-    SHA1::hexPrinter((byte*)(n3->getID().c_str()), ID_LEN);
+    SHA1::hexPrinter((unsigned char*)(n3->getID().c_str()), ID_LEN);
     std::cout << "\n";
 
     while(1) { }
