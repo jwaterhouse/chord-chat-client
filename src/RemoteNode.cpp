@@ -5,51 +5,74 @@
 
 RemoteNode::RemoteNode(const char* serial, size_t s) : INode::INode()
 {
-    int ipLen = (int)serial[0];
-    _ip = new std::string((char*)serial + 1, ipLen);
-    _port = ((unsigned int)(serial + ipLen + 1));
-    _port += ((unsigned int)(serial + ipLen + 1)) << 8;
-    _port += ((unsigned int)(serial + ipLen + 1)) << 16;
-    _port += ((unsigned int)(serial + ipLen + 1)) << 24;
+    int position = 0;
+    int nameLen = (int)serial[position];
+    position++;
+    _name = new std::string((char*)serial + position, nameLen);
+
+    position += nameLen;
+    int ipLen = (int)serial[position];
+    position++;
+    _ip = new std::string((char*)serial + position, ipLen);
+
+    position++;
+    _port = ((unsigned int)(serial + position));
+    _port += ((unsigned int)(serial + position + 1)) << 8;
+    _port += ((unsigned int)(serial + position + 2)) << 16;
+    _port += ((unsigned int)(serial + position + 3)) << 24;
 
     _id = new ID(*_ip, _port);
 }
+
+RemoteNode::RemoteNode(const Node& n) : INode::INode(n->getName(), n->getIP(), n->getPort()) { }
 
 RemoteNode::~RemoteNode()
 {
     //dtor
 }
 
-INode* RemoteNode::findPredecessor(const ID& id)
+Node RemoteNode::findPredecessor(const ID& id)
 {
     std::string message = createMessage(RPCCode::FIND_PREDECESSOR, std::string(id.c_str(), ID_LEN));
     std::string reply = sendMessage(message, true);
-    INode* n = new RemoteNode(reply.c_str(), reply.length());
-    return n;
+    if (reply != "")
+    {
+        Node n(new RemoteNode(reply.c_str(), reply.length()));
+        return n;
+    }
+    else return NULL;
 }
 
-INode* RemoteNode::findSuccessor(const ID& id)
+Node RemoteNode::findSuccessor(const ID& id)
 {
     std::string message = createMessage(RPCCode::FIND_SUCCESSOR, std::string(id.c_str(), ID_LEN));
     std::string reply = sendMessage(message, true);
-    INode* n = new RemoteNode(reply.c_str(), reply.length());
-    return n;
+    if (reply != "")
+    {
+        Node n(new RemoteNode(reply.c_str(), reply.length()));
+        return n;
+    }
+    else return NULL;
 }
 
-INode* RemoteNode::closestPrecedingFinger(const ID& id)
+Node RemoteNode::closestPrecedingFinger(const ID& id)
 {
     std::string message = createMessage(RPCCode::CLOSEST_PRECEDING_FINGER, std::string(id.c_str(), ID_LEN));
     std::string reply = sendMessage(message, true);
-    INode* n = new RemoteNode(reply.c_str(), reply.length());
-    return n;
+    if (reply != "")
+    {
+        Node n(new RemoteNode(reply.c_str(), reply.length()));
+        return n;
+    }
+    else return NULL;
 }
 
-void RemoteNode::join(INode* n)
+void RemoteNode::join(Node n)
 {
     std::cerr << "Not yet implemented." << std::endl;
 }
 
-void RemoteNode::initFingerTable(INode* n)
+void RemoteNode::initFingerTable(Node n)
 {
     std::cerr << "Not yet implemented." << std::endl;
 }
@@ -59,7 +82,7 @@ void RemoteNode::updateOthers()
     std::cerr << "Not yet implemented." << std::endl;
 }
 
-void RemoteNode::updateFingerTable(INode* n, unsigned int k)
+void RemoteNode::updateFingerTable(Node n, unsigned int k)
 {
     std::cerr << "Not yet implemented." << std::endl;
 }
@@ -69,7 +92,7 @@ void RemoteNode::stabilize()
     std::cerr << "Not yet implemented." << std::endl;
 }
 
-void RemoteNode::notify(INode* n)
+void RemoteNode::notify(Node n)
 {
     std::string message = createMessage(RPCCode::NOTIFY, n->serialize());
     std::string reply = sendMessage(message, false);
@@ -80,38 +103,40 @@ void RemoteNode::fixFingers()
     std::cerr << "Not yet implemented." << std::endl;
 }
 
-INode* RemoteNode::getPredecessor()
+Node RemoteNode::getPredecessor()
 {
     std::string message = createMessage(RPCCode::GET_PREDECESSOR, "");
     std::string reply = sendMessage(message, true);
-    INode* n = new RemoteNode(reply.c_str(), reply.length());
-    return n;
+    if (reply != "")
+    {
+        Node n(new RemoteNode(reply.c_str(), reply.length()));
+        return n;
+    }
+    else return NULL;
 }
 
-void RemoteNode::setPredecessor(INode* n)
+void RemoteNode::setPredecessor(Node n)
 {
     std::string message = createMessage(RPCCode::SET_PREDECESSOR, n->serialize());
     std::string reply = sendMessage(message, false);
 }
 
-INode* RemoteNode::getSuccessor()
+Node RemoteNode::getSuccessor()
 {
     std::string message = createMessage(RPCCode::GET_SUCCESSOR, "");
     std::string reply = sendMessage(message, true);
-    INode* n = new RemoteNode(reply.c_str(), reply.length());
-    return n;
+    if (reply != "")
+    {
+        Node n(new RemoteNode(reply.c_str(), reply.length()));
+        return n;
+    }
+    else return NULL;
 }
 
-void RemoteNode::setSuccessor(INode* n)
+void RemoteNode::setSuccessor(Node n)
 {
     std::string message = createMessage(RPCCode::SET_SUCCESSOR, n->serialize());
     std::string reply = sendMessage(message, false);
-}
-
-INode* RemoteNode::clone() const
-{
-    std::cerr << "Not yet implemented." << std::endl;
-    return NULL;
 }
 
 std::string RemoteNode::sendMessage(std::string message, bool responseExpected = false)
@@ -133,20 +158,25 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected =
 
         if (responseExpected)
         {
-            char reply[MAX_DATA_LENGTH];
-            size_t reply_length = asio::read(s, asio::buffer(reply, MAX_DATA_LENGTH));
+            char header = '\0';
+            size_t reply_length = asio::read(s, asio::buffer(&header, 1));
+            int messageLength = (int)header;
+
+            char reply[MAX_DATA_LENGTH] = {'\0'};
+            reply_length = asio::read(s, asio::buffer(reply, messageLength));
             return std::string(reply, reply_length);
         }
     }
     catch (std::exception& e)
     {
-        std::cerr << "Exception: " << e.what() << std::endl;
+        std::cerr << "Exception in " << getName() << "(remote): " << e.what() << std::endl;
     }
     return std::string("");
 }
 
 std::string RemoteNode::createMessage(RPCCode code, const std::string& payLoad)
 {
+    char messageLength = (char)(1 + payLoad.length());
     char c = (char)code;
-    return std::string(&c, 1) + payLoad;
+    return std::string(&messageLength, 1) + std::string(&c, 1) + payLoad;
 }

@@ -14,29 +14,29 @@
 class LocalNode : public INode
 {
     public:
-        LocalNode(const std::string&, unsigned int);
-        LocalNode(const std::string&, unsigned int, INode*);
+        LocalNode(const std::string&, const std::string&, unsigned int);
+        LocalNode(const std::string&, const std::string&, unsigned int, Node);
         LocalNode(const INode&);
         virtual ~LocalNode();
 
-        virtual INode* findPredecessor(const ID&);
-        virtual INode* findSuccessor(const ID&);
-        virtual INode* closestPrecedingFinger(const ID&);
-        virtual void join(INode*);
-        virtual void initFingerTable(INode*);
+        virtual Node findPredecessor(const ID&);
+        virtual Node findSuccessor(const ID&);
+        virtual Node closestPrecedingFinger(const ID&);
+        virtual void join(Node);
+        virtual void initFingerTable(Node);
         virtual void updateOthers();
-        virtual void updateFingerTable(INode*, unsigned int);
+        virtual void updateFingerTable(Node, unsigned int);
         virtual void stabilize();
-        virtual void notify(INode*);
+        virtual void notify(Node);
         virtual void fixFingers();
 
         // Getters and setters;
-        virtual INode* getPredecessor();
-        virtual void setPredecessor(INode*);
-        virtual INode* getSuccessor();
-        virtual void setSuccessor(INode*);
+        virtual Node getPredecessor();
+        virtual void setPredecessor(Node);
+        virtual Node getSuccessor();
+        virtual void setSuccessor(Node);
 
-        virtual INode* clone() const { return new LocalNode(*this); }
+        //virtual Node thisPtr() { return shared_from_this(); }
 
     private:
         void init();
@@ -46,7 +46,7 @@ class LocalNode : public INode
         std::string handleRequest(std::string);
 
     protected:
-        INode* _predecessor = 0;
+        Node _predecessor = 0;
         FingerTable* _finger = 0;
         std::thread* _periodicThread = 0;
         std::thread* _serverThread = 0;

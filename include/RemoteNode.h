@@ -7,26 +7,26 @@ class RemoteNode : public INode
 {
     public:
         RemoteNode(const char*, size_t);
+        RemoteNode(const Node&);
         virtual ~RemoteNode();
 
-        virtual INode* findPredecessor(const ID&);
-        virtual INode* findSuccessor(const ID&);
-        virtual INode* closestPrecedingFinger(const ID&);
-        virtual void join(INode*);
-        virtual void initFingerTable(INode*);
+        virtual Node findPredecessor(const ID&);
+        virtual Node findSuccessor(const ID&);
+        virtual Node closestPrecedingFinger(const ID&);
+        virtual void join(Node);
+        virtual void initFingerTable(Node);
         virtual void updateOthers();
-        virtual void updateFingerTable(INode*, unsigned int);
+        virtual void updateFingerTable(Node, unsigned int);
         virtual void stabilize();
-        virtual void notify(INode*);
+        virtual void notify(Node);
         virtual void fixFingers();
 
         // Getters and setters;
-        virtual INode* getPredecessor();
-        virtual void setPredecessor(INode*);
-        virtual INode* getSuccessor();
-        virtual void setSuccessor(INode*);
+        virtual Node getPredecessor();
+        virtual void setPredecessor(Node);
+        virtual Node getSuccessor();
+        virtual void setSuccessor(Node);
 
-        virtual INode* clone() const;
     protected:
         std::string sendMessage(std::string, bool);
         std::string createMessage(RPCCode, const std::string&);

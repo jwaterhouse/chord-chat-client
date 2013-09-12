@@ -3,29 +3,31 @@
 #include <ctime>
 #include "../include/RemoteNode.h"
 
-LocalNode::LocalNode(const std::string& ip, unsigned int port) : INode::INode(ip, port)
+LocalNode::LocalNode(const std::string& name, const std::string& ip, unsigned int port) : INode::INode(name, ip, port)
 {
     init();
 }
 
-LocalNode::LocalNode(const std::string& ip, unsigned int port, INode* n) : INode::INode(ip, port)
+LocalNode::LocalNode(const std::string& name, const std::string& ip, unsigned int port, Node n) : INode::INode(name, ip, port)
 {
     init();
     join(n);
 }
 
-LocalNode::LocalNode(const INode& n) : INode::INode(n.getIP(), n.getPort())
+LocalNode::LocalNode(const INode& n) : INode::INode(n.getName(), n.getIP(), n.getPort())
 {
     init();
 }
 
 LocalNode::~LocalNode()
 {
+    /*
     if (_predecessor != 0 && _predecessor != this)
     {
         delete _predecessor;
         _predecessor = 0;
     }
+    */
     if (_finger != 0)
     {
         delete _finger;
@@ -61,7 +63,7 @@ void LocalNode::init()
 {
     _finger = new FingerTable(*this);
     setPredecessor(0);
-    setSuccessor(this);
+    //setSuccessor(thisPtr());
 
     // initialise the mutexes
     _m = new std::mutex();
@@ -73,9 +75,9 @@ void LocalNode::init()
     _serverThread = new std::thread(&LocalNode::server, this);
 }
 
-INode* LocalNode::findPredecessor(const ID& id)
+Node LocalNode::findPredecessor(const ID& id)
 {
-    INode* n = this;
+    Node n = thisPtr();
     while (!(id.isInInterval(n->getID(), n->getSuccessor()->getID())
             || id == n->getSuccessor()->getID()))
     {
@@ -84,23 +86,23 @@ INode* LocalNode::findPredecessor(const ID& id)
     return n;
 }
 
-INode* LocalNode::findSuccessor(const ID& id)
+Node LocalNode::findSuccessor(const ID& id)
 {
-    INode* n = findPredecessor(id);
+    Node n = findPredecessor(id);
     return n->getSuccessor();
 }
 
-INode* LocalNode::closestPrecedingFinger(const ID& id)
+Node LocalNode::closestPrecedingFinger(const ID& id)
 {
     for (int i = M - 1; i >= 0; --i)
     {
         if (_finger->node(i)->getID().isInInterval(getID(), id))
             return _finger->node(i);
     }
-    return this;
+    return thisPtr();
 }
 
-void LocalNode::join(INode* n)
+void LocalNode::join(Node n)
 {
     /*
     if (n != 0)
@@ -121,12 +123,12 @@ void LocalNode::join(INode* n)
     setSuccessor(n->findSuccessor(this->getID()));
 }
 
-void LocalNode::initFingerTable(INode* n)
+void LocalNode::initFingerTable(Node n)
 {
     ID start = _finger->start(0);
     _finger->setNode(0, n->findSuccessor(_finger->start(0)));
     setPredecessor(getSuccessor()->getPredecessor());
-    getSuccessor()->setPredecessor(this);
+    getSuccessor()->setPredecessor(thisPtr());
 
     for (int i = 0; i < M; ++i)
     {
@@ -153,12 +155,12 @@ void LocalNode::updateOthers()
         ID bID(b);
         ID nId = *_id - bID;
 
-        INode* p = findPredecessor(nId);
-        p->updateFingerTable(this, i);
+        Node p = findPredecessor(nId);
+        p->updateFingerTable(thisPtr(), i);
     }
 }
 
-void LocalNode::updateFingerTable(INode* s, unsigned int i)
+void LocalNode::updateFingerTable(Node s, unsigned int i)
 {
     if (s->getID().isInInterval(getID(), _finger->node(i)->getID())
         || s->getID() == getID())
@@ -170,15 +172,15 @@ void LocalNode::updateFingerTable(INode* s, unsigned int i)
 
 void LocalNode::stabilize()
 {
-    INode* x = getSuccessor()->getPredecessor();
+    Node x = getSuccessor()->getPredecessor();
     if (x != 0 && x->getID().isInInterval(getID(), getSuccessor()->getID()))
     {
         setSuccessor(x);
     }
-    getSuccessor()->notify(this);
+    getSuccessor()->notify(thisPtr());
 }
 
-void LocalNode::notify(INode* n)
+void LocalNode::notify(Node n)
 {
     if (getPredecessor() == 0 || n->getID().isInInterval(getPredecessor()->getID(), getID()))
     {
@@ -193,22 +195,23 @@ void LocalNode::fixFingers()
     _finger->setNode(i, findSuccessor(sID));
 }
 
-INode* LocalNode::getPredecessor()
+Node LocalNode::getPredecessor()
 {
     return _predecessor;
 }
 
-void LocalNode::setPredecessor(INode* n)
+void LocalNode::setPredecessor(Node n)
 {
     _predecessor = n;
 }
 
-INode* LocalNode::getSuccessor()
+Node LocalNode::getSuccessor()
 {
+    if (_finger->node(0) == 0) return thisPtr();
     return _finger->node(0);
 }
 
-void LocalNode::setSuccessor(INode* n)
+void LocalNode::setSuccessor(Node n)
 {
     _finger->setNode(0, n);
 }
@@ -222,20 +225,24 @@ void LocalNode::periodic()
     for(;;)
     {
         // check if the thread needs to exit
-        if(_stop) break;
+        if(_stop) return;
 
         // check the timer
         timerloop = clock();
         if((timerloop - timer) / (double)CLOCKS_PER_SEC > TIME_PERIOD)
         {
-            //std::cout << (timer / (double)CLOCKS_PER_SEC) << " period hit!\n";
+            std::cout << getName() << ": periodic" << std::endl;
             stabilize();
             fixFingers();
 
             // check the server process, try to restart it if necessary
             if(!_serverRunning)
             {
-                if (_serverThread != 0) delete _serverThread;
+                if (_serverThread != 0)
+                {
+                    _serverThread->join();
+                    delete _serverThread;
+                }
                 _serverRunning = true;
                 _serverThread = new std::thread(&LocalNode::server, this);
             }
@@ -257,12 +264,20 @@ void LocalNode::server()
         asio::ip::tcp::acceptor acceptor(io_service, endpoint);
         asio::ip::tcp::socket socket(io_service);
 
-        std::cout << "Server ready" << std::endl;
+        std::cout << getName() << ": Server ready" << std::endl;
         for(;;)
         {
+            // check if the thread needs to exit
+            if(_stop) return;
+
+            std::cout << getName() << ": listen" << std::endl;
+            acceptor.listen();
+            //std::cout << getName() << ": non_blocking" << std::endl;
+            //acceptor.non_blocking(true);
+            std::cout << getName() << ": accept" << std::endl;
             acceptor.accept(socket);
 
-
+            std::cout << getName() << ": accepted" << std::endl;
             char data[MAX_DATA_LENGTH];
 
             asio::error_code error;
@@ -287,7 +302,7 @@ void LocalNode::server()
     }
     catch(std::exception& e)
     {
-        std::cerr << "Exception: " << e.what() << std::endl;
+        std::cerr << "Exception in " << getName() << ": " << e.what() << std::endl;
     }
     _serverRunning = false;
 }
@@ -296,7 +311,9 @@ std::string LocalNode::handleRequest(std::string message)
 {
     std::string response = "";
 
-    RPCCode messageCode = (RPCCode)message[0];
+    int payLoadLength = (int)(message[0]);
+    RPCCode messageCode = (RPCCode)message[1];
+    int offset = 2;
     switch(messageCode)
     {
         case RPCCode::FIND_PREDECESSOR:
@@ -305,8 +322,8 @@ std::string LocalNode::handleRequest(std::string message)
             {
                 //error - message is too small
             }
-            ID id((char*)(message.c_str() + 1));
-            INode* n = findPredecessor(id);
+            ID id((char*)(message.c_str() + offset));
+            Node n = findPredecessor(id);
             response = n->serialize();
         }
         break;
@@ -316,8 +333,8 @@ std::string LocalNode::handleRequest(std::string message)
             {
                 //error - message is too small
             }
-            ID id((char*)(message.c_str() + 1));
-            INode* n = findSuccessor(id);
+            ID id((char*)(message.c_str() + offset));
+            Node n = findSuccessor(id);
             response = n->serialize();
         }
         break;
@@ -327,8 +344,8 @@ std::string LocalNode::handleRequest(std::string message)
             {
                 //error - message is too small
             }
-            ID id((char*)(message.c_str() + 1));
-            INode* n = closestPrecedingFinger(id);
+            ID id((char*)(message.c_str() + offset));
+            Node n = closestPrecedingFinger(id);
             response = n->serialize();
         }
         break;
@@ -359,7 +376,7 @@ std::string LocalNode::handleRequest(std::string message)
         break;
         case RPCCode::NOTIFY:
         {
-            INode* n = new RemoteNode(message.c_str() + 1, message.length() - 1);
+            Node n(new RemoteNode(message.c_str() + offset, message.length() - offset));
             notify(n);
         }
         break;
@@ -375,18 +392,18 @@ std::string LocalNode::handleRequest(std::string message)
         break;
         case RPCCode::SET_PREDECESSOR:
         {
-            INode* n = new RemoteNode(message.c_str() + 1, message.length() - 1);
+            Node n(new RemoteNode(message.c_str() + offset, message.length() - offset));
             setPredecessor(n);
         }
         break;
         case RPCCode::GET_SUCCESSOR:
         {
-            response = getSuccessor()->serialize();;
+            response = getSuccessor()->serialize();
         }
         break;
         case RPCCode::SET_SUCCESSOR:
         {
-            INode* n = new RemoteNode(message.c_str() + 1, message.length() - 1);
+            Node n(new RemoteNode(message.c_str() + offset, message.length() - offset));
             setSuccessor(n);
         }
         break;
@@ -403,5 +420,6 @@ std::string LocalNode::handleRequest(std::string message)
     //if (response != "")
     //   asio::write(socket.get(), asio::buffer(response));
     //socket.get().close();
-    return std::string(response);
+    char responseLength = (int)(response.length());
+    return std::string(&responseLength, 1) + std::string(response);
 }

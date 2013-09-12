@@ -10,11 +10,11 @@ class FingerTable
         virtual ~FingerTable();
 
         ID start(unsigned int);
-        INode* node(unsigned int);
-        void setNode(unsigned int, INode*);
+        Node node(unsigned int);
+        void setNode(unsigned int, Node);
     protected:
     private:
-        INode* _entries[M] = {NULL};
+        Node _entries[M] = {NULL};
         ID* _id = 0;
 };
 

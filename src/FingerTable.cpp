@@ -45,12 +45,12 @@ ID FingerTable::start(unsigned int k)
 
 //void interval(unsigned int k, FingerTableEntry* intervalStart, FingerTableEntry* intervalEnd);
 
-INode* FingerTable::node(unsigned int k)
+Node FingerTable::node(unsigned int k)
 {
     return _entries[k];
 }
 
-void FingerTable::setNode(unsigned int k, INode* n)
+void FingerTable::setNode(unsigned int k, Node n)
 {
     /*
     if (_entries[k] != 0)
