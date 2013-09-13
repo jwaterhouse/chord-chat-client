@@ -6,13 +6,13 @@ CC=g++
 CFLAGS=-c -Wall -DASIO_STANDALONE -Ivendor/asio/include
 CPFLAGS=-pthread -std=c++0x
 
-all: chkdir hello
+all: chkdir ChordChat
 
-hello: main.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o ChatClient.o
-	$(CC) obj/main.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/main $(CPFLAGS)
+ChordChat: ChordChat.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o ChatClient.o
+	$(CC) obj/ChordChat.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/ChordChat $(CPFLAGS)
 
-main.o: src/main.cpp
-	$(CC) $(CFLAGS) src/main.cpp -o obj/main.o $(CPFLAGS)
+ChordChat.o: src/ChordChat.cpp
+	$(CC) $(CFLAGS) src/ChordChat.cpp -o obj/ChordChat.o $(CPFLAGS)
 
 ChatClient.o: src/ChatClient.cpp
 	$(CC) $(CFLAGS) src/ChatClient.cpp -o obj/ChatClient.o $(CPFLAGS)

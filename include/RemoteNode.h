@@ -6,6 +6,7 @@
 class RemoteNode : public INode
 {
     public:
+        RemoteNode(const std::string&, const std::string&, unsigned int);
         RemoteNode(const char*, size_t);
         RemoteNode(const Node&);
         virtual ~RemoteNode();

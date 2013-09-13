@@ -9,13 +9,12 @@
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
-#define TIME_PERIOD 1.0 // time to periodically call some methods, in seconds
+#define TIME_PERIOD 0.5 // time to periodically call some methods, in seconds
 
 class LocalNode : public INode
 {
     public:
         LocalNode(const std::string&, const std::string&, unsigned int);
-        LocalNode(const std::string&, const std::string&, unsigned int, Node);
         LocalNode(const INode&);
         virtual ~LocalNode();
 
@@ -36,7 +35,6 @@ class LocalNode : public INode
         virtual Node getSuccessor();
         virtual void setSuccessor(Node);
 
-        //virtual Node thisPtr() { return shared_from_this(); }
         virtual void receive(std::string);
 
     private:
@@ -55,6 +53,7 @@ class LocalNode : public INode
         std::mutex* _m = 0;
         std::mutex* _socketM = 0;
         bool _stop = false;
+        unsigned int _next = 0;
 };
 
 #endif // LOCALNODE_H

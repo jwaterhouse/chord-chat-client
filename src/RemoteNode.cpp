@@ -3,6 +3,10 @@
 #include <iostream>
 #include <asio.hpp>
 
+RemoteNode::RemoteNode(const std::string& name, const std::string& host, unsigned int port) : INode::INode(name, host, port)
+{
+}
+
 RemoteNode::RemoteNode(const char* serial, size_t s) : INode::INode()
 {
     int position = 0;
@@ -11,21 +15,21 @@ RemoteNode::RemoteNode(const char* serial, size_t s) : INode::INode()
     _name = new std::string((char*)serial + position, nameLen);
 
     position += nameLen;
-    int ipLen = (int)serial[position];
+    int hostLen = (int)serial[position];
     position++;
-    _ip = new std::string((char*)serial + position, ipLen);
+    _host = new std::string((char*)serial + position, hostLen);
 
-    position += ipLen;
+    position += hostLen;
     int portLen = (int)serial[position];
     position++;
     std::string portStr((char*)serial + position, portLen);
 
     _port = atoi(portStr.c_str());
 
-    _id = new ID(*_ip, _port);
+    _id = new ID(*_host, _port);
 }
 
-RemoteNode::RemoteNode(const Node& n) : INode::INode(n->getName(), n->getIP(), n->getPort()) { }
+RemoteNode::RemoteNode(const Node& n) : INode::INode(n->getName(), n->getHost(), n->getPort()) { }
 
 RemoteNode::~RemoteNode()
 {
@@ -158,7 +162,7 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected =
         asio::io_service io_service;
         asio::ip::tcp::socket s(io_service);
         asio::ip::tcp::resolver resolver(io_service);
-        asio::ip::tcp::resolver::query query(getIP(), portStr);
+        asio::ip::tcp::resolver::query query(getHost(), portStr);
         asio::connect(s, resolver.resolve(query));
 
         asio::write(s, asio::buffer(message));

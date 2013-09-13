@@ -33,12 +33,12 @@ class INode : public std::enable_shared_from_this<INode>
 {
     public:
         INode() { };
-        INode(const std::string& name, const std::string& ip, unsigned int port)
+        INode(const std::string& name, const std::string& host, unsigned int port)
         {
             _name = new std::string(name);
-            _ip = new std::string(ip);
+            _host = new std::string(host);
             _port = port;
-            //_id = new ID(*_ip, _port);
+            //_id = new ID(*_host, _port);
             _id = new ID(*_name);
         }
 
@@ -50,10 +50,10 @@ class INode : public std::enable_shared_from_this<INode>
                 _id = 0;
             }
 
-            if (_ip != 0)
+            if (_host != 0)
             {
-                delete _ip;
-                _ip = 0;
+                delete _host;
+                _host = 0;
             }
         };
 
@@ -76,7 +76,7 @@ class INode : public std::enable_shared_from_this<INode>
         virtual void setSuccessor(Node) = 0;
         const ID getID() const { return ID(*_id); }
         const std::string getName() const { return std::string(*_name); }
-        const std::string getIP() const { return std::string(*_ip); }
+        const std::string getHost() const { return std::string(*_host); }
         unsigned int getPort() const { return _port; }
 
         //virtual Node clone() const = 0;
@@ -87,19 +87,19 @@ class INode : public std::enable_shared_from_this<INode>
         virtual std::string serialize()
         {
             char nameLen = (char)(getName().length());
-            char ipLen = (char)(getIP().length());
+            char hostLen = (char)(getHost().length());
             std::string portStr;
             std::ostringstream convert;
             convert << getPort();
             portStr = convert.str();
             char portStrLen = (char)(portStr.length());
-            return nameLen + getName() + ipLen + getIP() + portStrLen + portStr;
+            return nameLen + getName() + hostLen + getHost() + portStrLen + portStr;
         }
 
     protected:
         std::string* _name = 0;
         ID* _id = 0;
-        std::string* _ip = 0;
+        std::string* _host = 0;
         unsigned int _port = 0;
         std::function<void(std::string)> _rcvFn = 0;
 };

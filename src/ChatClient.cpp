@@ -3,9 +3,9 @@
 #include "../include/LocalNode.h"
 #include "../include/StringTrim.h"
 
-ChatClient::ChatClient(std::string name, std::string ip, unsigned int port)
+ChatClient::ChatClient(std::string name, std::string host, unsigned int port)
 {
-    _n = Node(new LocalNode(name, ip, port));
+    _n = Node(new LocalNode(name, host, port));
     _n->setReceiveFunction(std::bind(&ChatClient::receiveMessage, this, std::placeholders::_1));
 }
 
@@ -24,9 +24,13 @@ void ChatClient::run()
 {
     std::cout << "Welcome to Chord Chat!" << std::endl;
     std::cout << "Usage\t- to send a message, type the recipients name ";
-    std::cout << "followed by a double colon, then followed by your chat message." << std::endl;
+    std::cout << "followed by a double colon, then your chat message." << std::endl;
     std::cout << "\t\tExample: \"bob: hi bob!\"" << std::endl;
     std::cout << "\t- to quit, type \"quit\" or \"exit\"" << std::endl;
+
+    std::cout << "My name is " + _n->getName() + " and my ID is:" << std::endl;
+    SHA1::hexPrinter((unsigned char*)(_n->getID().c_str()), ID_LEN);
+    std::cout << std::endl << std::endl;
 
     std::string line;
     while(1)
@@ -52,22 +56,25 @@ void ChatClient::run()
         size_t colon = line.find(":");
         if (colon == std::string::npos)
         {
-            // invalid recipient format
-            std::cerr << "Error - please specify recipient." << std::endl;
+            // invalid rechostient format
+            std::cerr << "Error - please specify rechostient." << std::endl;
             continue;
         }
         std::string name = line.substr(0, colon);
         name = trim(name);
         if (name.length() == 0)
         {
-            // invalid recipient format
-            std::cerr << "Error - please specify recipient." << std::endl;
+            // invalid rechostient format
+            std::cerr << "Error - please specify rechostient." << std::endl;
             continue;
         }
         ID id(name);
 
+        std::cout << "Sending to:\n";
+        SHA1::hexPrinter((unsigned char*)id.c_str(), ID_LEN);
+
         // get the message
-        std::string message = line.substr(colon + 1, line.length());
+        std::string message = line.substr(colon + 1);
         message = trim(message);
         if (message.length() == 0)
         {

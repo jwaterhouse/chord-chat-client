@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstring>
 #include "../include/FingerTable.h"
+#include <iostream>
 
 FingerTable::FingerTable(INode& n)
 {
@@ -36,7 +37,7 @@ ID FingerTable::start(unsigned int k)
         //error
     }
     char b[ID_LEN];
-    b[ID_LEN - k / 8 - 1] = (0x01 << (k % 8));
+    b[k / 8] = (0x01 << (k % 8));
     ID bID(b);
 
     ID id = *_id + bID;
@@ -47,6 +48,8 @@ ID FingerTable::start(unsigned int k)
 
 Node FingerTable::node(unsigned int k)
 {
+    while (_entries[k] == 0 && k < M) k++;
+    if (k == M) k = 0;
     return _entries[k];
 }
 
@@ -59,6 +62,18 @@ void FingerTable::setNode(unsigned int k, Node n)
         _entries[k] = 0;
     }
     */
-
     _entries[k] = n;
+    printFingerTable();
+}
+
+void FingerTable::printFingerTable()
+{
+    std::cout << "Finger Table:" << std::endl;
+    for(int i = 0; i < M; ++i)
+    {
+        if (_entries[i] != 0)
+        {
+            std::cout << "\t" << i << "\t" << _entries[i]->getName() << std::endl;
+        }
+    }
 }

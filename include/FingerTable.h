@@ -12,6 +12,8 @@ class FingerTable
         ID start(unsigned int);
         Node node(unsigned int);
         void setNode(unsigned int, Node);
+
+        void printFingerTable();
     protected:
     private:
         Node _entries[M] = {NULL};
