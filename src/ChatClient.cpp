@@ -24,7 +24,7 @@ void ChatClient::run()
 {
     std::cout << "Welcome to Chord Chat!" << std::endl;
     std::cout << "Usage\t- to send a message, type the recipients name ";
-    std::cout << "followed by a comma, then followed by your chat message." << std::endl;
+    std::cout << "followed by a double colon, then followed by your chat message." << std::endl;
     std::cout << "\t\tExample: \"bob: hi bob!\"" << std::endl;
     std::cout << "\t- to quit, type \"quit\" or \"exit\"" << std::endl;
 
@@ -49,14 +49,14 @@ void ChatClient::run()
             continue;
         }
 
-        size_t comma = line.find(":");
-        if (comma == std::string::npos)
+        size_t colon = line.find(":");
+        if (colon == std::string::npos)
         {
             // invalid recipient format
             std::cerr << "Error - please specify recipient." << std::endl;
             continue;
         }
-        std::string name = line.substr(0, comma);
+        std::string name = line.substr(0, colon);
         name = trim(name);
         if (name.length() == 0)
         {
@@ -67,7 +67,7 @@ void ChatClient::run()
         ID id(name);
 
         // get the message
-        std::string message = line.substr(comma + 1, line.length());
+        std::string message = line.substr(colon + 1, line.length());
         message = trim(message);
         if (message.length() == 0)
         {
