@@ -38,12 +38,15 @@
 		<Linker>
 			<Add option="-pthread" />
 		</Linker>
+		<Unit filename="include/ChatClient.h" />
 		<Unit filename="include/FingerTable.h" />
 		<Unit filename="include/ID.h" />
 		<Unit filename="include/INode.h" />
 		<Unit filename="include/LocalNode.h" />
 		<Unit filename="include/RemoteNode.h" />
+		<Unit filename="include/StringTrim.h" />
 		<Unit filename="include/sha1.h" />
+		<Unit filename="src/ChatClient.cpp" />
 		<Unit filename="src/FingerTable.cpp" />
 		<Unit filename="src/ID.cpp" />
 		<Unit filename="src/LocalNode.cpp" />
