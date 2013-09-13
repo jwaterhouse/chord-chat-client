@@ -22,9 +22,6 @@ class LocalNode : public INode
         virtual Node findSuccessor(const ID&);
         virtual Node closestPrecedingFinger(const ID&);
         virtual void join(Node);
-        virtual void initFingerTable(Node);
-        virtual void updateOthers();
-        virtual void updateFingerTable(Node, unsigned int);
         virtual void stabilize();
         virtual void notify(Node);
         virtual void fixFingers();
@@ -35,18 +32,21 @@ class LocalNode : public INode
         virtual Node getSuccessor();
         virtual void setSuccessor(Node);
 
+
+
         virtual void receive(std::string);
 
     private:
         void init();
         void checkPredecessor();
+        ID start(unsigned int);
         void periodic();
         void server();
         std::string handleRequest(const char*, size_t);
 
     protected:
         Node _predecessor = 0;
-        FingerTable* _finger = 0;
+        FingerTable _finger;
         std::thread* _periodicThread = 0;
         std::thread* _serverThread = 0;
         bool _serverRunning = true;

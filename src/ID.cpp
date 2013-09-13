@@ -57,7 +57,7 @@ bool ID::isInInterval(const ID& lower, const ID& upper) const
         return *this > lower && *this < upper;
     if (lower > upper)
         return *this > lower || *this < upper;
-    return false;
+    return true;
 }
 
 const char* ID::c_str() const
@@ -86,8 +86,8 @@ const char& ID::operator[](int index) const
 ID& ID::operator+=(const ID& other)
 {
     char overflow = 0x00;
-    // MSB is the last index (ID_LEN - 1)
-    for(int i = 0; i < ID_LEN; ++i)
+    // MSB is at index 0
+    for(int i = ID_LEN - 1; i >= 0; --i)
     {
         unsigned int val = (unsigned int)_id[i] + (unsigned int)other[i] + (unsigned int)overflow;
         _id[i] = (char)val;
@@ -95,35 +95,29 @@ ID& ID::operator+=(const ID& other)
     }
     return *this;
 }
-ID operator+(ID& lhs, const ID& rhs)
+
+const ID ID::operator+(const ID& rhs) const
 {
-  lhs += rhs;
-  return lhs;
+  return ID(*this) += rhs;
 }
 
 ID& ID::operator-=(const ID& other)
 {
-    char temp[ID_LEN];
-    temp[0] = 0x01;
-    for(int i = 0; i < ID_LEN; ++i)
-        _id[i] = _id[i] ^ 0xff;
-
     char overflow = 0x00;
     for(int i = 0; i < ID_LEN; ++i)
     {
-        unsigned int val = (unsigned int)_id[i] + (unsigned int)temp[i] + (unsigned int)overflow;
+        unsigned int val = (unsigned int)_id[i] + (unsigned int)(other[i] ^ 0xff) + (unsigned int)overflow;
+        if (i == 0) val = val + 1;
         _id[i] = (char)val;
         overflow = (char)(val >> 8) & 0x01;
     }
 
-    *this += other;
     return *this;
 }
 
-ID operator-(ID& lhs, const ID& rhs)
+const ID ID::operator-(const ID& rhs) const
 {
-  lhs -= rhs;
-  return lhs;
+  return ID(*this) -= rhs;
 }
 
 bool operator==(const ID& lhs, const ID& rhs)
@@ -135,8 +129,8 @@ bool operator==(const ID& lhs, const ID& rhs)
 bool operator!=(const ID& lhs, const ID& rhs) { return !operator==(lhs,rhs); }
 bool operator<(const ID& lhs, const ID& rhs)
 {
-    // MSB is at index ID_LEN - 1
-    for(int i = ID_LEN - 1; i >= 0; ++i)
+    // MSB is at index 0
+    for(int i = 0; i < ID_LEN; ++i)
     {
         if (lhs[i] < rhs[i]) return true;
         if (lhs[i] > rhs[i]) return false;

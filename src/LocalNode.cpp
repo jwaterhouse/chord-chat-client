@@ -22,11 +22,13 @@ LocalNode::~LocalNode()
         _predecessor = 0;
     }
     */
+    /*
     if (_finger != 0)
     {
         delete _finger;
         _finger = 0;
     }
+    */
     if (_periodicThread != 0)
     {
         _stop = true;
@@ -55,7 +57,7 @@ LocalNode::~LocalNode()
 
 void LocalNode::init()
 {
-    _finger = new FingerTable(*this);
+    //_finger = new FingerTable(*this);
     setPredecessor(0);
     //setSuccessor(thisPtr());
 
@@ -87,8 +89,7 @@ Node LocalNode::findSuccessor(const ID& id)
 
     Node s = getSuccessor();
     if(id.isInInterval(getID(), s->getID())
-        || id == s->getID()
-        || getID() == s->getID())
+        || id == s->getID())
     {
         return s;
     }
@@ -103,84 +104,23 @@ Node LocalNode::closestPrecedingFinger(const ID& id)
 {
     for (int i = M - 1; i >= 0; --i)
     {
-        if (_finger->node(i)->getID().isInInterval(getID(), id))
-            return _finger->node(i);
+        if (_finger[i]->getID().isInInterval(getID(), id))
+            return _finger[i];
     }
     return thisPtr();
 }
 
 void LocalNode::join(Node n)
 {
-    /*
-    if (n != 0)
-    {
-        initFingerTable(n);
-        updateOthers();
-    }
-    else
-    {
-        for(unsigned int i = 0; i < M; ++i)
-        {
-            _finger->setNode(i, n);
-        }
-        setPredecessor(n);
-    }
-    */
     setPredecessor(0);
     setSuccessor(n->findSuccessor(getID()));
-}
-
-void LocalNode::initFingerTable(Node n)
-{
-    ID start = _finger->start(0);
-    _finger->setNode(0, n->findSuccessor(_finger->start(0)));
-    setPredecessor(getSuccessor()->getPredecessor());
-    getSuccessor()->setPredecessor(thisPtr());
-
-    for (int i = 0; i < M; ++i)
-    {
-        ID si = _finger->start(i + 1);
-        if (si.isInInterval(getID(), _finger->node(i)->getID())
-            || si == getID())
-        {
-            _finger->setNode(i + 1, _finger->node(i));
-        }
-        else
-        {
-            _finger->setNode(i + 1, n->findSuccessor(si));
-        }
-    }
-}
-
-void LocalNode::updateOthers()
-{
-    for (int i = 0; i < M; ++i)
-    {
-        char b[ID_LEN];
-        b[ID_LEN - i / 8 - 1] = (0x01 << (i % 8));
-
-        ID bID(b);
-        ID nId = *_id - bID;
-
-        Node p = findPredecessor(nId);
-        p->updateFingerTable(thisPtr(), i);
-    }
-}
-
-void LocalNode::updateFingerTable(Node s, unsigned int i)
-{
-    if (s->getID().isInInterval(getID(), _finger->node(i)->getID())
-        || s->getID() == getID())
-    {
-        _finger->setNode(i, s);
-        if (getPredecessor()) getPredecessor()->updateFingerTable(s, i);
-    }
 }
 
 void LocalNode::stabilize()
 {
     Node x = getSuccessor()->getPredecessor();
-    if(x != 0 && x->getID().isInInterval(getID(), getSuccessor()->getID()))
+    if(x != 0 &&
+        (x->getID().isInInterval(getID(), getSuccessor()->getID())))
     {
         setSuccessor(x);
     }
@@ -190,8 +130,7 @@ void LocalNode::stabilize()
 void LocalNode::notify(Node n)
 {
     if(getPredecessor() == 0
-        || n->getID().isInInterval(getPredecessor()->getID(), getID())
-        || getPredecessor()->getID() == getID())
+        || n->getID().isInInterval(getPredecessor()->getID(), getID()))
     {
         setPredecessor(n);
     }
@@ -203,8 +142,10 @@ void LocalNode::fixFingers()
     _next++;
     if (_next >= M) _next = 0;
     unsigned int i = _next;
-    ID sID = _finger->start(i);
-    _finger->setNode(i, findSuccessor(sID));
+    ID sID = start(i);
+    Node n = findSuccessor(sID);
+    if (n != 0 && n->getID() == getID()) n = thisPtr();
+    _finger.setNode(i, findSuccessor(sID));
 }
 
 Node LocalNode::getPredecessor()
@@ -214,18 +155,36 @@ Node LocalNode::getPredecessor()
 
 void LocalNode::setPredecessor(Node n)
 {
+    if (n != 0 && n->getID() == getID()) n = thisPtr();
     _predecessor = n;
 }
 
 Node LocalNode::getSuccessor()
 {
-    if (_finger->node(0) == 0) _finger->setNode(0, thisPtr());
-    return _finger->node(0);
+    if (_finger.getNode(0) == 0) _finger.setNode(0, thisPtr());
+    return _finger[0];
 }
 
 void LocalNode::setSuccessor(Node n)
 {
-    _finger->setNode(0, n);
+    if (n != 0 && n->getID() == getID()) n = thisPtr();
+    _finger.setNode(0, n);
+}
+
+ID LocalNode::start(unsigned int k)
+{
+    // n + 2**i
+
+    if (k < 0 || k >= M)
+    {
+        //error
+    }
+    // MSB is at index 0
+    char b[ID_LEN];
+    b[ID_LEN - (k / 8) - 1] = (0x01 << (k % 8));
+    ID bID(b);
+
+    return *_id + bID;
 }
 
 void LocalNode::receive(std::string message)
@@ -375,21 +334,6 @@ std::string LocalNode::handleRequest(const char* message, size_t length)
             std::cerr << "Not yet implemented." << std::endl;
         }
         break;
-        case RPCCode::INIT_FINGER_TABLE:
-        {
-            std::cerr << "Not yet implemented." << std::endl;
-        }
-        break;
-        case RPCCode::UPDATE_OTHERS:
-        {
-            std::cerr << "Not yet implemented." << std::endl;
-        }
-        break;
-        case RPCCode::UPDATE_FINGER_TABLE:
-        {
-            std::cerr << "Not yet implemented." << std::endl;
-        }
-        break;
         case RPCCode::STABILIZE:
         {
             std::cerr << "Not yet implemented." << std::endl;
@@ -413,7 +357,9 @@ std::string LocalNode::handleRequest(const char* message, size_t length)
         break;
         case RPCCode::SET_PREDECESSOR:
         {
-            Node n(new RemoteNode(message + offset, length - offset));
+            Node n;
+            if ((length - offset) == 0) n = NULL;
+            else n = Node(new RemoteNode(message + offset, length - offset));
             setPredecessor(n);
         }
         break;
@@ -424,7 +370,9 @@ std::string LocalNode::handleRequest(const char* message, size_t length)
         break;
         case RPCCode::SET_SUCCESSOR:
         {
-            Node n(new RemoteNode(message + offset, length - offset));
+            Node n;
+            if ((length - offset) == 0) n = NULL;
+            else n = Node(new RemoteNode(message + offset, length - offset));
             setSuccessor(n);
         }
         break;

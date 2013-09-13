@@ -6,18 +6,17 @@
 class FingerTable
 {
     public:
-        FingerTable(INode&);
-        virtual ~FingerTable();
+        FingerTable() { }
+        virtual ~FingerTable() { }
 
-        ID start(unsigned int);
-        Node node(unsigned int);
+        const Node& operator[](int) const;
+        Node getNode(unsigned int);
         void setNode(unsigned int, Node);
 
-        void printFingerTable();
+        void printFingerTable() const;
     protected:
     private:
         Node _entries[M] = {NULL};
-        ID* _id = 0;
 };
 
 #endif // FINGERTABLE_H

@@ -15,9 +15,6 @@ class RemoteNode : public INode
         virtual Node findSuccessor(const ID&);
         virtual Node closestPrecedingFinger(const ID&);
         virtual void join(Node);
-        virtual void initFingerTable(Node);
-        virtual void updateOthers();
-        virtual void updateFingerTable(Node, unsigned int);
         virtual void stabilize();
         virtual void notify(Node);
         virtual void fixFingers();

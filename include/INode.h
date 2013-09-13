@@ -15,9 +15,6 @@ enum class RPCCode
     FIND_SUCCESSOR,
     CLOSEST_PRECEDING_FINGER,
     JOIN,
-    INIT_FINGER_TABLE,
-    UPDATE_OTHERS,
-    UPDATE_FINGER_TABLE,
     STABILIZE,
     NOTIFY,
     FIX_FINGER,
@@ -62,9 +59,6 @@ class INode : public std::enable_shared_from_this<INode>
         virtual Node findSuccessor(const ID&) = 0;
         virtual Node closestPrecedingFinger(const ID&) = 0;
         virtual void join(Node) = 0;
-        virtual void initFingerTable(Node) = 0;
-        virtual void updateOthers() = 0;
-        virtual void updateFingerTable(Node, unsigned int) = 0;
         virtual void stabilize() = 0;
         virtual void notify(Node) = 0;
         virtual void fixFingers() = 0;

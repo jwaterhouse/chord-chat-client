@@ -3,75 +3,41 @@
 #include "../include/FingerTable.h"
 #include <iostream>
 
-FingerTable::FingerTable(INode& n)
+const Node& FingerTable::operator[](int index) const
 {
-    _id = new ID(n.getID());
-    //for (int i = 0; i < M; ++i)
-    //   _entries[i] = &n;
-}
-
-FingerTable::~FingerTable()
-{
-    /*
-    for(int i = 0; i < M; ++i)
-    {
-        if (_entries[i] != 0)
-        {
-            delete _entries[i];
-            _entries[i] = 0;
-        }
-    }
-    */
-
-    if (_id != 0)
-    {
-        delete _id;
-        _id = 0;
-    }
-}
-
-ID FingerTable::start(unsigned int k)
-{
-    if (k < 0 || k >= M)
+    if (index < 0 || index >= M)
     {
         //error
     }
-    char b[ID_LEN];
-    b[k / 8] = (0x01 << (k % 8));
-    ID bID(b);
-
-    ID id = *_id + bID;
-    return id;
+    while (_entries[index] == NULL) index--;
+    return _entries[index];
 }
 
-//void interval(unsigned int k, FingerTableEntry* intervalStart, FingerTableEntry* intervalEnd);
-
-Node FingerTable::node(unsigned int k)
+Node FingerTable::getNode(unsigned int index)
 {
-    while (_entries[k] == 0 && k < M) k++;
-    if (k == M) k = 0;
-    return _entries[k];
-}
-
-void FingerTable::setNode(unsigned int k, Node n)
-{
-    /*
-    if (_entries[k] != 0)
+    if (index < 0 || index >= M)
     {
-        delete _entries[k];
-        _entries[k] = 0;
+        //error
     }
-    */
-    _entries[k] = n;
+    return _entries[index];
+}
+
+void FingerTable::setNode(unsigned int index, Node n)
+{
+    if (index < 0 || index >= M)
+    {
+        //error
+    }
+    _entries[index] = n;
     printFingerTable();
 }
 
-void FingerTable::printFingerTable()
+void FingerTable::printFingerTable() const
 {
     std::cout << "Finger Table:" << std::endl;
     for(int i = 0; i < M; ++i)
     {
-        if (_entries[i] != 0)
+        if (_entries[i] != NULL)
         {
             std::cout << "\t" << i << "\t" << _entries[i]->getName() << std::endl;
         }

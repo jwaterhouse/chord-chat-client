@@ -74,27 +74,12 @@ Node RemoteNode::closestPrecedingFinger(const ID& id)
 
 void RemoteNode::join(Node n)
 {
-    std::cerr << "Not yet implemented." << std::endl;
-}
-
-void RemoteNode::initFingerTable(Node n)
-{
-    std::cerr << "Not yet implemented." << std::endl;
-}
-
-void RemoteNode::updateOthers()
-{
-    std::cerr << "Not yet implemented." << std::endl;
-}
-
-void RemoteNode::updateFingerTable(Node n, unsigned int k)
-{
-    std::cerr << "Not yet implemented." << std::endl;
+    std::cerr << "RemoteNode::join() - Not yet implemented." << std::endl;
 }
 
 void RemoteNode::stabilize()
 {
-    std::cerr << "Not yet implemented." << std::endl;
+    std::cerr << "RemoteNode::stabilize() - Not yet implemented." << std::endl;
 }
 
 void RemoteNode::notify(Node n)
@@ -105,7 +90,7 @@ void RemoteNode::notify(Node n)
 
 void RemoteNode::fixFingers()
 {
-    std::cerr << "Not yet implemented." << std::endl;
+    std::cerr << "RemoteNode::fixFingers() - Not yet implemented." << std::endl;
 }
 
 Node RemoteNode::getPredecessor()
