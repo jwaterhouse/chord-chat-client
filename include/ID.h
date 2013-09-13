@@ -16,6 +16,7 @@ class ID
         ID(const char*);
         ID(const ID&);
         ID(const std::string&, unsigned int);
+        ID(const std::string&);
         virtual ~ID();
 
         bool isInInterval(const ID&, const ID&) const;

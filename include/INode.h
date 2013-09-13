@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 #include "../include/ID.h"
 
 #define MAX_DATA_LENGTH 1024
@@ -24,7 +25,8 @@ enum class RPCCode
     SET_PREDECESSOR,
     GET_SUCCESSOR,
     SET_SUCCESSOR,
-    GET_ID
+    GET_ID,
+    RECEIVE
 };
 
 class INode : public std::enable_shared_from_this<INode>
@@ -36,7 +38,8 @@ class INode : public std::enable_shared_from_this<INode>
             _name = new std::string(name);
             _ip = new std::string(ip);
             _port = port;
-            _id = new ID(*_ip, _port);
+            //_id = new ID(*_ip, _port);
+            _id = new ID(*_name);
         }
 
         virtual ~INode()
@@ -54,6 +57,7 @@ class INode : public std::enable_shared_from_this<INode>
             }
         };
 
+        // Chord implementation methods
         virtual Node findPredecessor(const ID&) = 0;
         virtual Node findSuccessor(const ID&) = 0;
         virtual Node closestPrecedingFinger(const ID&) = 0;
@@ -78,17 +82,18 @@ class INode : public std::enable_shared_from_this<INode>
         //virtual Node clone() const = 0;
         friend bool operator==(const INode& lhs, const INode& rhs) { return lhs.getID() == rhs.getID(); }
         virtual Node thisPtr() { return shared_from_this(); }
+        virtual void setReceiveFunction(std::function<void(std::string)> rcvFn) { _rcvFn = rcvFn; }
+        virtual void receive(std::string) = 0;
         virtual std::string serialize()
         {
             char nameLen = (char)(getName().length());
             char ipLen = (char)(getIP().length());
-            char portCharArr[4];
-            portCharArr[0] = (char)_port;
-            portCharArr[1] = (char)(_port >> 8);
-            portCharArr[2] = (char)(_port >> 16);
-            portCharArr[3] = (char)(_port >> 24);
-
-            return std::string(&nameLen) + getName() + std::string(&ipLen) + getIP() + std::string(portCharArr, 4);
+            std::string portStr;
+            std::ostringstream convert;
+            convert << getPort();
+            portStr = convert.str();
+            char portStrLen = (char)(portStr.length());
+            return nameLen + getName() + ipLen + getIP() + portStrLen + portStr;
         }
 
     protected:
@@ -96,7 +101,7 @@ class INode : public std::enable_shared_from_this<INode>
         ID* _id = 0;
         std::string* _ip = 0;
         unsigned int _port = 0;
-
+        std::function<void(std::string)> _rcvFn = 0;
 };
 
 #endif // INODE_H

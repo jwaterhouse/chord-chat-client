@@ -8,11 +8,14 @@ CPFLAGS=-pthread -std=c++0x
 
 all: chkdir hello
 
-hello: main.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o
-	$(CC) obj/main.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o -o bin/main $(CPFLAGS)
+hello: main.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o ChatClient.o
+	$(CC) obj/main.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/main $(CPFLAGS)
 
 main.o: src/main.cpp
 	$(CC) $(CFLAGS) src/main.cpp -o obj/main.o $(CPFLAGS)
+
+ChatClient.o: src/ChatClient.cpp
+	$(CC) $(CFLAGS) src/ChatClient.cpp -o obj/ChatClient.o $(CPFLAGS)
 
 ID.o: src/ID.cpp
 	$(CC) $(CFLAGS) src/ID.cpp -o obj/ID.o $(CPFLAGS)

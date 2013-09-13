@@ -30,6 +30,16 @@ ID::ID(const std::string& ip, unsigned int port)
 	delete sha1;
 }
 
+ID::ID(const std::string& str)
+{
+    SHA1* sha1 = new SHA1();
+	sha1->addBytes(str.c_str(), str.length());
+	unsigned char* digest = sha1->getDigest();
+	for (int i = 0; i < ID_LEN; ++i) _id[i] = (char)digest[i];
+	free(digest);
+	delete sha1;
+}
+
 ID::~ID()
 {
     /*

@@ -27,6 +27,8 @@ class RemoteNode : public INode
         virtual Node getSuccessor();
         virtual void setSuccessor(Node);
 
+        virtual void receive(std::string);
+
     protected:
         std::string sendMessage(std::string, bool);
         std::string createMessage(RPCCode, const std::string&);

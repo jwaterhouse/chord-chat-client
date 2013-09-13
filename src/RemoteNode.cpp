@@ -15,11 +15,12 @@ RemoteNode::RemoteNode(const char* serial, size_t s) : INode::INode()
     position++;
     _ip = new std::string((char*)serial + position, ipLen);
 
+    position += ipLen;
+    int portLen = (int)serial[position];
     position++;
-    _port = ((unsigned int)(serial + position));
-    _port += ((unsigned int)(serial + position + 1)) << 8;
-    _port += ((unsigned int)(serial + position + 2)) << 16;
-    _port += ((unsigned int)(serial + position + 3)) << 24;
+    std::string portStr((char*)serial + position, portLen);
+
+    _port = atoi(portStr.c_str());
 
     _id = new ID(*_ip, _port);
 }
@@ -139,6 +140,12 @@ void RemoteNode::setSuccessor(Node n)
     std::string reply = sendMessage(message, false);
 }
 
+void RemoteNode::receive(std::string message)
+{
+    std::string msg = createMessage(RPCCode::RECEIVE, message);
+    std::string reply = sendMessage(msg, false);
+}
+
 std::string RemoteNode::sendMessage(std::string message, bool responseExpected = false)
 {
     std::string portStr;
@@ -160,10 +167,10 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected =
         {
             char header = '\0';
             size_t reply_length = asio::read(s, asio::buffer(&header, 1));
-            int messageLength = (int)header;
+            int payloadLength = (int)header;
 
             char reply[MAX_DATA_LENGTH] = {'\0'};
-            reply_length = asio::read(s, asio::buffer(reply, messageLength));
+            reply_length = asio::read(s, asio::buffer(reply, payloadLength));
             return std::string(reply, reply_length);
         }
     }
@@ -178,5 +185,5 @@ std::string RemoteNode::createMessage(RPCCode code, const std::string& payLoad)
 {
     char messageLength = (char)(1 + payLoad.length());
     char c = (char)code;
-    return std::string(&messageLength, 1) + std::string(&c, 1) + payLoad;
+    return messageLength + std::string("") + c + payLoad;
 }

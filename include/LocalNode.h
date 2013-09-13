@@ -37,13 +37,14 @@ class LocalNode : public INode
         virtual void setSuccessor(Node);
 
         //virtual Node thisPtr() { return shared_from_this(); }
+        virtual void receive(std::string);
 
     private:
         void init();
         void checkPredecessor();
         void periodic();
         void server();
-        std::string handleRequest(std::string);
+        std::string handleRequest(const char*, size_t);
 
     protected:
         Node _predecessor = 0;
