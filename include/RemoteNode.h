@@ -6,10 +6,13 @@
 class RemoteNode : public INode
 {
     public:
-        RemoteNode(const std::string&, const std::string&, unsigned int);
-        RemoteNode(const char*, size_t);
-        RemoteNode(const Node&);
-        virtual ~RemoteNode();
+        RemoteNode(const std::string& name, const std::string& host, unsigned int port) : INode::INode(name, host, port) { }
+
+        RemoteNode(const char* serial, size_t s) : INode::INode(serial, s) { }
+
+        RemoteNode(const Node& n) : INode::INode(n) { }
+
+        virtual ~RemoteNode() { }
 
         virtual Node findPredecessor(const ID&);
         virtual Node findSuccessor(const ID&);

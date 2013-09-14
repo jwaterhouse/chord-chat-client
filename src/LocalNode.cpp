@@ -8,7 +8,7 @@ LocalNode::LocalNode(const std::string& name, const std::string& host, unsigned 
     init();
 }
 
-LocalNode::LocalNode(const INode& n) : INode::INode(n.getName(), n.getHost(), n.getPort())
+LocalNode::LocalNode(const Node& n) : INode::INode(n)
 {
     init();
 }
@@ -57,7 +57,7 @@ LocalNode::~LocalNode()
 
 void LocalNode::init()
 {
-    //_finger = new FingerTable(*this);
+    _finger.setID(*_id);
     setPredecessor(0);
     //setSuccessor(thisPtr());
 
@@ -138,11 +138,13 @@ void LocalNode::notify(Node n)
 
 void LocalNode::fixFingers()
 {
-    //unsigned int i = (unsigned int)rand() % (M - 1) + 1;
+    unsigned int i = (unsigned int)rand() % (M - 1) + 1;
+    /*
     _next++;
     if (_next >= M) _next = 0;
     unsigned int i = _next;
-    ID sID = start(i);
+    */
+    ID sID = _finger.start(i);
     Node n = findSuccessor(sID);
     if (n != 0 && n->getID() == getID()) n = thisPtr();
     _finger.setNode(i, findSuccessor(sID));
@@ -169,22 +171,6 @@ void LocalNode::setSuccessor(Node n)
 {
     if (n != 0 && n->getID() == getID()) n = thisPtr();
     _finger.setNode(0, n);
-}
-
-ID LocalNode::start(unsigned int k)
-{
-    // n + 2**i
-
-    if (k < 0 || k >= M)
-    {
-        //error
-    }
-    // MSB is at index 0
-    char b[ID_LEN];
-    b[ID_LEN - (k / 8) - 1] = (0x01 << (k % 8));
-    ID bID(b);
-
-    return *_id + bID;
 }
 
 void LocalNode::receive(std::string message)
@@ -238,163 +224,154 @@ void LocalNode::server()
         asio::io_service io_service;
         asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), getPort());
         asio::ip::tcp::acceptor acceptor(io_service, endpoint);
-        asio::ip::tcp::socket socket(io_service);
-
-        //std::cout << getName() << ": Server ready" << std::endl;
         for(;;)
         {
             // check if the thread needs to exit
             if(_stop) return;
 
-            //std::cout << getName() << ": listen" << std::endl;
+            // create a new socket for this connection and listen
+            asio::ip::tcp::socket socket(io_service);
             acceptor.listen();
-            //std::cout << getName() << ": non_blocking" << std::endl;
-            //acceptor.non_blocking(true);
-            //std::cout << getName() << ": accept" << std::endl;
             acceptor.accept(socket);
 
-            //std::cout << getName() << ": accepted" << std::endl;
-            char data[MAX_DATA_LENGTH];
-
-            asio::error_code error;
-            char header = '\0';
-            size_t length = asio::read(socket, asio::buffer(&header, 1), error);
-            int payloadLength = (int)header;
-
-            length = asio::read(socket, asio::buffer(data, payloadLength), error);
-
-            //size_t length = socket.read_some(asio::buffer(data), error);
-            if (error == asio::error::eof)
-                break; // Connection closed cleanly by peer.
-            else if (error)
-                throw asio::system_error(error); // Some other error.
-
-            // handle the message in a new thread
-            //threads.push_back(std::thread(&LocalNode::handleRequest, this));
-            //std::string message(data, length);
-            //std::thread t(&LocalNode::handleRequest, this, socket, message);
-            //std::thread t(std::bind(&LocalNode::handleRequest, this, socket, message));
-            //t.detach();
-            std::string response = handleRequest(data, length);
-
-            asio::write(socket, asio::buffer(response));
-            socket.close();
+            // release a new thread to handle the request
+            std::thread t(std::bind(&LocalNode::handleRequest, this, std::move(socket)));
+            t.detach(); // dangerous?
         }
     }
     catch(std::exception& e)
     {
-        std::cerr << "Exception in " << getName() << ": " << e.what() << std::endl;
+        std::cerr << "Exception in " << getName() << "::server() - " << e.what() << std::endl;
     }
     _serverRunning = false;
 }
 
-std::string LocalNode::handleRequest(const char* message, size_t length)
+void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
 {
-    std::string response = "";
-
-    RPCCode messageCode = (RPCCode)message[0];
-    int offset = 1;
-    switch(messageCode)
+    try
     {
-        case RPCCode::FIND_PREDECESSOR:
-        {
-            if (length < 21)
-            {
-                //error - message is too small
-            }
-            ID id((char*)(message + offset));
-            Node n = findPredecessor(id);
-            response = n->serialize();
-        }
-        break;
-        case RPCCode::FIND_SUCCESSOR:
-        {
-            if (length < 21)
-            {
-                //error - message is too small
-            }
-            ID id((char*)(message + offset));
-            Node n = findSuccessor(id);
-            response = n->serialize();
-        }
-        break;
-        case RPCCode::CLOSEST_PRECEDING_FINGER:
-        {
-            if (length < 21)
-            {
-                //error - message is too small
-            }
-            ID id((char*)(message + offset));
-            Node n = closestPrecedingFinger(id);
-            response = n->serialize();
-        }
-        break;
-        case RPCCode::JOIN:
-        {
-            std::cerr << "Not yet implemented." << std::endl;
-        }
-        break;
-        case RPCCode::STABILIZE:
-        {
-            std::cerr << "Not yet implemented." << std::endl;
-        }
-        break;
-        case RPCCode::NOTIFY:
-        {
-            Node n(new RemoteNode(message + offset, length - offset));
-            notify(n);
-        }
-        break;
-        case RPCCode::FIX_FINGER:
-        {
-            std::cerr << "Not yet implemented." << std::endl;
-        }
-        break;
-        case RPCCode::GET_PREDECESSOR:
-        {
-            response = getPredecessor()->serialize();
-        }
-        break;
-        case RPCCode::SET_PREDECESSOR:
-        {
-            Node n;
-            if ((length - offset) == 0) n = NULL;
-            else n = Node(new RemoteNode(message + offset, length - offset));
-            setPredecessor(n);
-        }
-        break;
-        case RPCCode::GET_SUCCESSOR:
-        {
-            response = getSuccessor()->serialize();
-        }
-        break;
-        case RPCCode::SET_SUCCESSOR:
-        {
-            Node n;
-            if ((length - offset) == 0) n = NULL;
-            else n = Node(new RemoteNode(message + offset, length - offset));
-            setSuccessor(n);
-        }
-        break;
-        case RPCCode::GET_ID:
-        {
-            response = std::string(getID().c_str(), ID_LEN);
-        }
-        break;
-        case RPCCode::RECEIVE:
-        {
-            std::string receivedMessage(message + offset, length - offset);
-            _rcvFn(receivedMessage);
-        }
-        break;
-        default:
-            std::cerr << "Error: Invalid RPC code received - " << (int)messageCode << std::endl;
-    }
+        char message[MAX_DATA_LENGTH] = {'\0'};
 
-    // respond if necessary and close the socket
-    //if (response != "")
-    //   asio::write(socket.get(), asio::buffer(response));
-    //socket.get().close();
-    char responseLength = (int)(response.length());
-    return std::string(&responseLength, 1) + std::string(response);
+        asio::error_code error;
+        char header = '\0';
+        size_t length = asio::read(socket, asio::buffer(&header, 1), error);
+        int messageLength = (int)header;
+
+        length = asio::read(socket, asio::buffer(message, messageLength), error);
+
+        if (error == asio::error::eof)
+            return; // Connection closed cleanly by peer.
+        else if (error)
+            throw asio::system_error(error); // Some other error.
+
+        std::string response = "";
+
+        RPCCode messageCode = (RPCCode)message[0];
+        int offset = 1;
+        switch(messageCode)
+        {
+            case RPCCode::FIND_PREDECESSOR:
+            {
+                if (length < 21)
+                {
+                    //error - message is too small
+                }
+                ID id((char*)(message + offset));
+                Node n = findPredecessor(id);
+                response = n->serialize();
+            }
+            break;
+            case RPCCode::FIND_SUCCESSOR:
+            {
+                if (length < 21)
+                {
+                    //error - message is too small
+                }
+                ID id((char*)(message + offset));
+                Node n = findSuccessor(id);
+                response = n->serialize();
+            }
+            break;
+            case RPCCode::CLOSEST_PRECEDING_FINGER:
+            {
+                if (length < 21)
+                {
+                    //error - message is too small
+                }
+                ID id((char*)(message + offset));
+                Node n = closestPrecedingFinger(id);
+                response = n->serialize();
+            }
+            break;
+            case RPCCode::JOIN:
+            {
+                std::cerr << "join(): Not yet implemented." << std::endl;
+            }
+            break;
+            case RPCCode::STABILIZE:
+            {
+                std::cerr << "stabilize(): Not yet implemented." << std::endl;
+            }
+            break;
+            case RPCCode::NOTIFY:
+            {
+                Node n(new RemoteNode(message + offset, length - offset));
+                notify(n);
+            }
+            break;
+            case RPCCode::FIX_FINGER:
+            {
+                std::cerr << "fixFinger(): Not yet implemented." << std::endl;
+            }
+            break;
+            case RPCCode::GET_PREDECESSOR:
+            {
+                response = getPredecessor()->serialize();
+            }
+            break;
+            case RPCCode::SET_PREDECESSOR:
+            {
+                Node n;
+                if ((length - offset) == 0) n = NULL;
+                else n = Node(new RemoteNode(message + offset, length - offset));
+                setPredecessor(n);
+            }
+            break;
+            case RPCCode::GET_SUCCESSOR:
+            {
+                response = getSuccessor()->serialize();
+            }
+            break;
+            case RPCCode::SET_SUCCESSOR:
+            {
+                Node n;
+                if ((length - offset) == 0) n = NULL;
+                else n = Node(new RemoteNode(message + offset, length - offset));
+                setSuccessor(n);
+            }
+            break;
+            case RPCCode::GET_ID:
+            {
+                response = std::string(getID().c_str(), ID_LEN);
+            }
+            break;
+            case RPCCode::RECEIVE:
+            {
+                std::string receivedMessage(message + offset, length - offset);
+                _rcvFn(receivedMessage);
+            }
+            break;
+            default:
+                std::cerr << "Error: Invalid RPC code received - " << (int)messageCode << std::endl;
+        }
+
+        char responseLength = (int)(response.length());
+        std::string responseMessage = responseLength + response;
+        asio::write(socket, asio::buffer(responseMessage));
+    }
+    catch(std::exception& e)
+    {
+        std::cerr << "Exception in " << getName() << "::handleRequest() - " << e.what() << std::endl;
+    }
+    socket.close();
 }

@@ -9,15 +9,16 @@
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
-#define TIME_PERIOD 0.5 // time to periodically call some methods, in seconds
+#define TIME_PERIOD 0.1 // time to periodically call some methods, in seconds
 
 class LocalNode : public INode
 {
     public:
         LocalNode(const std::string&, const std::string&, unsigned int);
-        LocalNode(const INode&);
+        LocalNode(const Node&);
         virtual ~LocalNode();
 
+        // chord implementation methods
         virtual Node findPredecessor(const ID&);
         virtual Node findSuccessor(const ID&);
         virtual Node closestPrecedingFinger(const ID&);
@@ -32,17 +33,14 @@ class LocalNode : public INode
         virtual Node getSuccessor();
         virtual void setSuccessor(Node);
 
-
-
         virtual void receive(std::string);
 
     private:
         void init();
         void checkPredecessor();
-        ID start(unsigned int);
         void periodic();
         void server();
-        std::string handleRequest(const char*, size_t);
+        void handleRequest(asio::ip::tcp::socket&);
 
     protected:
         Node _predecessor = 0;

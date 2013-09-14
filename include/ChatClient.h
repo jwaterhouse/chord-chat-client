@@ -16,6 +16,8 @@ class ChatClient
         void receiveMessage(std::string);
     protected:
     private:
+        void printUsage();
+
         Node _n = 0;
         bool send(const ID&, const std::string&);
 };

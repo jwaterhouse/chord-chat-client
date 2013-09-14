@@ -3,39 +3,6 @@
 #include <iostream>
 #include <asio.hpp>
 
-RemoteNode::RemoteNode(const std::string& name, const std::string& host, unsigned int port) : INode::INode(name, host, port)
-{
-}
-
-RemoteNode::RemoteNode(const char* serial, size_t s) : INode::INode()
-{
-    int position = 0;
-    int nameLen = (int)serial[position];
-    position++;
-    _name = new std::string((char*)serial + position, nameLen);
-
-    position += nameLen;
-    int hostLen = (int)serial[position];
-    position++;
-    _host = new std::string((char*)serial + position, hostLen);
-
-    position += hostLen;
-    int portLen = (int)serial[position];
-    position++;
-    std::string portStr((char*)serial + position, portLen);
-
-    _port = atoi(portStr.c_str());
-
-    _id = new ID(*_host, _port);
-}
-
-RemoteNode::RemoteNode(const Node& n) : INode::INode(n->getName(), n->getHost(), n->getPort()) { }
-
-RemoteNode::~RemoteNode()
-{
-    //dtor
-}
-
 Node RemoteNode::findPredecessor(const ID& id)
 {
     std::string message = createMessage(RPCCode::FIND_PREDECESSOR, std::string(id.c_str(), ID_LEN));
@@ -165,7 +132,7 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected =
     }
     catch (std::exception& e)
     {
-        std::cerr << "Exception in " << getName() << "(remote): " << e.what() << std::endl;
+        std::cerr << "Exception in " << getName() << "(remote)::sendMessage() - " << e.what() << std::endl;
     }
     return std::string("");
 }

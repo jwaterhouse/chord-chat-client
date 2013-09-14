@@ -19,7 +19,7 @@ static Node createNodeFromString(std::string str, bool local)
     size_t nameSep = str.find("@");
     if (nameSep == std::string::npos)
     {
-        // invalid rechostient format
+        // invalid recipient format
         std::cerr << "Error - invalid node format, no '@' symbol." << std::endl;
         return NULL;
     }
@@ -27,7 +27,7 @@ static Node createNodeFromString(std::string str, bool local)
     name = trim(name);
     if (name.length() == 0)
     {
-        // invalid rechostient format
+        // invalid recipient format
         std::cerr << "Error - please specify name." << std::endl;
         return NULL;
     }
@@ -35,7 +35,7 @@ static Node createNodeFromString(std::string str, bool local)
     size_t hostSep = str.find(":");
     if (hostSep == std::string::npos)
     {
-        // invalid rechostient format
+        // invalid recipient format
         std::cerr << "Error - invalid node format, no ':' symbol." << std::endl;
         return NULL;
     }
@@ -43,7 +43,7 @@ static Node createNodeFromString(std::string str, bool local)
     host = trim(host);
     if (host.length() == 0)
     {
-        // invalid rechostient format
+        // invalid recipient format
         std::cerr << "Error - please specify host." << std::endl;
         return NULL;
     }
@@ -52,7 +52,7 @@ static Node createNodeFromString(std::string str, bool local)
     portStr = trim(portStr);
     if (portStr.length() == 0)
     {
-        // invalid rechostient format
+        // invalid recipient format
         std::cerr << "Error - please specify port." << std::endl;
         return NULL;
     }
@@ -65,31 +65,6 @@ static Node createNodeFromString(std::string str, bool local)
 
 int main(int argc, char* argv[])
 {
-    /*
-    char test1[ID_LEN] = {'\0'};
-    char test2[ID_LEN] = {'\0'};
-    test1[0] = 0x21;
-    test2[0] = 0x01;
-
-    ID t1(test1);
-    ID t2(test2);
-    std::cout << "Test 1:" << std::endl;
-    SHA1::hexPrinter((unsigned char*)(t1.c_str()), ID_LEN);
-    std::cout << std::endl;
-    std::cout << "Test 2:" << std::endl;
-    SHA1::hexPrinter((unsigned char*)(t2.c_str()), ID_LEN);
-    std::cout << std::endl;
-
-    ID t3 = t1 - t2;
-    std::cout << "Test 3:" << std::endl;
-    SHA1::hexPrinter((unsigned char*)(t3.c_str()), ID_LEN);
-    std::cout << std::endl;
-
-    std::cout << "Test 3: " << (t1 > t2 ? "true" : "false") << std::endl;
-
-    return 0;
-    */
-
     if (argc < 2 || argc > 3)
     {
         printUsage();

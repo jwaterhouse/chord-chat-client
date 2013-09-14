@@ -29,15 +29,53 @@ enum class RPCCode
 class INode : public std::enable_shared_from_this<INode>
 {
     public:
-        INode() { };
+
+        /** \brief Construct a new Node with a name, host and port.
+         *
+         * \param name The Node's name. This is used to generate the Node's ID.
+         * \param host Hostname or IP address for this Node to listen on.
+         * \param port The port for this Node to listen on.
+         */
         INode(const std::string& name, const std::string& host, unsigned int port)
         {
             _name = new std::string(name);
             _host = new std::string(host);
             _port = port;
-            //_id = new ID(*_host, _port);
             _id = new ID(*_name);
         }
+
+        /** \brief Create a new Node from a serialization string.
+         *
+         * \param serial The serialized Node string.
+         * \param length The length of the serial string.
+         */
+        INode(const char* serial, size_t length)
+        {
+            int position = 0;
+            int nameLen = (int)serial[position];
+            position++;
+            _name = new std::string((char*)serial + position, nameLen);
+
+            position += nameLen;
+            int hostLen = (int)serial[position];
+            position++;
+            _host = new std::string((char*)serial + position, hostLen);
+
+            position += hostLen;
+            int portLen = (int)serial[position];
+            position++;
+            std::string portStr((char*)serial + position, portLen);
+
+            _port = atoi(portStr.c_str());
+
+            _id = new ID(*_name);
+        }
+
+        /** \brief Copy constructor.
+         *
+         * \param n The Node to copy
+         */
+        INode(const Node& n) : INode(n->getName(), n->getHost(), n->getPort()) { }
 
         virtual ~INode()
         {
@@ -54,13 +92,51 @@ class INode : public std::enable_shared_from_this<INode>
             }
         };
 
-        // Chord implementation methods
+        /** \brief Find the predecessor of the given ID.
+         *
+         * \param ID The ID to find the predecessor of.
+         * \return Node The Node preceding ID.
+         */
         virtual Node findPredecessor(const ID&) = 0;
+
+        /** \brief Find the successor of the given ID.
+         *
+         * \param ID The ID to find the successor of.
+         * \return Node The Node succeeding ID.
+         */
         virtual Node findSuccessor(const ID&) = 0;
+
+        /** \brief Return the closest preceding finger of the given ID.
+         *
+         * \param ID The ID to find the CPF of.
+         * \return Node The closest Node preceding ID.
+         */
         virtual Node closestPrecedingFinger(const ID&) = 0;
+
+        /** \brief Join an existing network through the given Node.
+         *
+         * \param Node Node of the network to join.
+         * \return void
+         */
         virtual void join(Node) = 0;
+
+        /** \brief Stabilize this Node by checking it's successor.
+         *
+         * \return void
+         */
         virtual void stabilize() = 0;
+
+        /** \brief Notifies the given Node that this Node may be it's predecessor.
+         *
+         * \param Node The Node to notify.
+         * \return void
+         */
         virtual void notify(Node) = 0;
+
+        /** \brief Called periodically to check the finger table.
+         *
+         * \return void
+         */
         virtual void fixFingers() = 0;
 
         // Getters and setters;
