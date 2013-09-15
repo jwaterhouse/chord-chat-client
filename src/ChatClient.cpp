@@ -93,7 +93,7 @@ void ChatClient::run()
 
         if (!exists)
         {
-            std::cerr << "Error - could not find \"" << name << "\"." << std::endl;
+            std::cerr << "Error - could not find user with name \"" << name << "\"." << std::endl;
         }
     }
 }
