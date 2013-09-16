@@ -7,7 +7,7 @@ const Node& FingerTable::operator[](int index) const
 {
     if (index < 0 || index >= M)
     {
-        //error
+        std::cerr << "Error in FingerTable::operator[] - index '" << index << "' out of bounds." << std::endl;
     }
     while (_entries[index] == NULL && index < M) index++;
     if (index == M) return NULL;
@@ -18,7 +18,7 @@ Node FingerTable::getNode(unsigned int index)
 {
     if (index < 0 || index >= M)
     {
-        //error
+        std::cerr << "Error in FingerTable::getNode() - index '" << index << "' out of bounds." << std::endl;
     }
     return _entries[index];
 }
@@ -27,7 +27,7 @@ void FingerTable::setNode(unsigned int index, Node n)
 {
     if (index < 0 || index >= M)
     {
-        //error
+        std::cerr << "Error in FingerTable::setNode() - index '" << index << "' out of bounds." << std::endl;
     }
     _entries[index] = n;
     //printFingerTable();
@@ -40,7 +40,7 @@ ID FingerTable::start(unsigned int k) const
 
     if (k < 0 || k >= M)
     {
-        //error
+        std::cerr << "Error in FingerTable::start() - k '" << k << "' out of bounds." << std::endl;
     }
     // MSB is at index 0
     char b[ID_LEN] = {'\0'};

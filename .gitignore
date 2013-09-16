@@ -5,6 +5,7 @@
 *.layout
 *.depend
 *.cstore_file_list
+*.cscope_file_list
 
 # Compiled source #
 ###################

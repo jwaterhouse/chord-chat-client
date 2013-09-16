@@ -17,9 +17,8 @@ class ChatClient
     protected:
     private:
         void printUsage();
-
-        Node _n = 0;
         bool send(const ID&, const std::string&);
+        Node _n = 0;
 };
 
 #endif // CHATCLIENT_H

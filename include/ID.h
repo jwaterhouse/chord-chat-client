@@ -6,8 +6,8 @@
 #include "../include/sha1.h"
 //#include "../include/INode.h"
 
-#define ID_LEN 20
-#define M 160
+#define ID_LEN 20 /**< Number of bytes in an ID string. */
+#define M 160 /**< Number of bits in an ID. Depends on consistent hash algorithm. */
 
 class ID
 {
@@ -20,9 +20,6 @@ class ID
         virtual ~ID();
 
         bool isInInterval(const ID&, const ID&) const;
-        //bool isInInterval(const INode& n, const ID& id) const { return isInInterval(n.getID(), id); }
-        //bool isInInterval(const ID& id, const INode& n) const { return isInInterval(id, n.getID()); }
-        //bool isInInterval(const INode& n1, const INode& n2) const { return isInInterval(n1.getID(), n2.getID()); }
         const char* c_str() const;
 
         char& operator[](int);

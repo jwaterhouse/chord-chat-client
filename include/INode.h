@@ -39,10 +39,10 @@ class INode : public std::enable_shared_from_this<INode>
          */
         INode(const std::string& name, const std::string& host, unsigned int port)
         {
-            _name = new std::string(name);
-            _host = new std::string(host);
+            _name = name;
+            _host = host;
             _port = port;
-            _id = new ID(*_name);
+            _id = ID(_name);
         }
 
         /** \brief Create a new Node from a serialization string.
@@ -55,12 +55,12 @@ class INode : public std::enable_shared_from_this<INode>
             int position = 0;
             int nameLen = (int)serial[position];
             position++;
-            _name = new std::string((char*)serial + position, nameLen);
+            _name = std::string((char*)serial + position, nameLen);
 
             position += nameLen;
             int hostLen = (int)serial[position];
             position++;
-            _host = new std::string((char*)serial + position, hostLen);
+            _host = std::string((char*)serial + position, hostLen);
 
             position += hostLen;
             int portLen = (int)serial[position];
@@ -69,7 +69,7 @@ class INode : public std::enable_shared_from_this<INode>
 
             _port = atoi(portStr.c_str());
 
-            _id = new ID(*_name);
+            _id = ID(_name);
         }
 
         /** \brief Copy constructor.
@@ -78,20 +78,7 @@ class INode : public std::enable_shared_from_this<INode>
          */
         INode(const Node& n) : INode(n->getName(), n->getHost(), n->getPort()) { }
 
-        virtual ~INode()
-        {
-            if (_id != 0)
-            {
-                delete _id;
-                _id = 0;
-            }
-
-            if (_host != 0)
-            {
-                delete _host;
-                _host = 0;
-            }
-        };
+        virtual ~INode() { }
 
         /** \brief Find the predecessor of the given ID.
          *
@@ -146,21 +133,26 @@ class INode : public std::enable_shared_from_this<INode>
          */
         virtual bool ping() = 0;
 
-        // Getters and setters;
+        /** \brief Generic method to receive a message.
+         *
+         * \param string The message to receive at this Node.
+         * \return void
+         */
+        virtual void receive(std::string) = 0;
+
+        // Getters and setters
         virtual Node getPredecessor() = 0;
         virtual void setPredecessor(Node) = 0;
         virtual Node getSuccessor() = 0;
         virtual void setSuccessor(Node) = 0;
-        const ID getID() const { return ID(*_id); }
-        const std::string getName() const { return std::string(*_name); }
-        const std::string getHost() const { return std::string(*_host); }
+        const ID getID() const { return _id; }
+        const std::string getName() const { return _name; }
+        const std::string getHost() const { return _host; }
         unsigned int getPort() const { return _port; }
 
-        //virtual Node clone() const = 0;
         friend bool operator==(const INode& lhs, const INode& rhs) { return lhs.getID() == rhs.getID(); }
         virtual Node thisPtr() { return shared_from_this(); }
         virtual void setReceiveFunction(std::function<void(std::string)> rcvFn) { _rcvFn = rcvFn; }
-        virtual void receive(std::string) = 0;
         virtual std::string serialize()
         {
             char nameLen = (char)(getName().length());
@@ -174,9 +166,9 @@ class INode : public std::enable_shared_from_this<INode>
         }
 
     protected:
-        std::string* _name = 0;
-        ID* _id = 0;
-        std::string* _host = 0;
+        std::string _name;
+        ID _id;
+        std::string _host;
         unsigned int _port = 0;
         std::function<void(std::string)> _rcvFn = 0;
 };

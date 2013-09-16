@@ -9,7 +9,7 @@
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
-#define TIME_PERIOD 0.1 // time to periodically call some methods, in seconds
+#define TIME_PERIOD 0.1 /**< The time to periodically call maintenance methods, in seconds. */
 
 class LocalNode : public INode
 {
@@ -26,6 +26,8 @@ class LocalNode : public INode
         virtual void stabilize();
         virtual void notify(Node);
         virtual void fixFingers();
+        virtual bool ping();
+        virtual void receive(std::string);
 
         // Getters and setters;
         virtual Node getPredecessor();
@@ -33,18 +35,8 @@ class LocalNode : public INode
         virtual Node getSuccessor();
         virtual void setSuccessor(Node);
 
-        virtual void receive(std::string);
-
-    private:
-        void init();
-        void checkPredecessor();
-        void periodic();
-        void server();
-        void handleRequest(asio::ip::tcp::socket&);
-
     protected:
-        virtual bool ping();
-
+    private:
         Node _predecessor = 0;
         FingerTable _finger;
         std::thread* _periodicThread = 0;
@@ -53,6 +45,14 @@ class LocalNode : public INode
         std::mutex _m;
         bool _stop = false;
         unsigned int _next = 0;
+
+        void init();
+        void checkPredecessor();
+        void periodic();
+        void server();
+        void handleRequest(asio::ip::tcp::socket&);
+
+
 };
 
 #endif // LOCALNODE_H

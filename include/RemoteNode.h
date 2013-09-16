@@ -21,6 +21,8 @@ class RemoteNode : public INode
         virtual void stabilize();
         virtual void notify(Node);
         virtual void fixFingers();
+        virtual bool ping();
+        virtual void receive(std::string);
 
         // Getters and setters;
         virtual Node getPredecessor();
@@ -28,13 +30,10 @@ class RemoteNode : public INode
         virtual Node getSuccessor();
         virtual void setSuccessor(Node);
 
-        virtual void receive(std::string);
-
     protected:
-        virtual bool ping();
+    private:
         std::string sendMessage(std::string, bool = false, bool = false);
         std::string createMessage(RPCCode, const std::string&);
-    private:
 };
 
 #endif // REMOTENODE_H

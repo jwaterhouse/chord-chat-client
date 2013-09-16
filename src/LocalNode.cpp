@@ -33,7 +33,7 @@ LocalNode::~LocalNode()
 
 void LocalNode::init()
 {
-    _finger.setID(*_id);
+    _finger.setID(_id);
     setPredecessor(NULL);
     //setSuccessor(thisPtr());  //cannot set as part of constructor
 
