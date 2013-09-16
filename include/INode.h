@@ -38,12 +38,7 @@ class INode : public std::enable_shared_from_this<INode>
          * \param port The port for this Node to listen on.
          */
         INode(const std::string& name, const std::string& host, unsigned int port)
-        {
-            _name = name;
-            _host = host;
-            _port = port;
-            _id = ID(_name);
-        }
+            : _name(name), _host(host), _port(port), _id(_name) { }
 
         /** \brief Create a new Node from a serialization string.
          *
@@ -167,9 +162,9 @@ class INode : public std::enable_shared_from_this<INode>
 
     protected:
         std::string _name;
-        ID _id;
         std::string _host;
-        unsigned int _port = 0;
+        unsigned int _port;
+        ID _id;
         std::function<void(std::string)> _rcvFn = 0;
 };
 
