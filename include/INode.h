@@ -23,7 +23,8 @@ enum class RPCCode
     GET_SUCCESSOR,
     SET_SUCCESSOR,
     GET_ID,
-    RECEIVE
+    RECEIVE,
+    PING
 };
 
 class INode : public std::enable_shared_from_this<INode>
@@ -138,6 +139,12 @@ class INode : public std::enable_shared_from_this<INode>
          * \return void
          */
         virtual void fixFingers() = 0;
+
+        /** \brief Ping function.
+         *
+         * \return true if the Node is reachable, false if not.
+         */
+        virtual bool ping() = 0;
 
         // Getters and setters;
         virtual Node getPredecessor() = 0;

@@ -60,6 +60,21 @@ void RemoteNode::fixFingers()
     std::cerr << "RemoteNode::fixFingers() - Not yet implemented." << std::endl;
 }
 
+bool RemoteNode::ping()
+{
+    std::string message = createMessage(RPCCode::PING, "");
+    try
+    {
+        std::string reply = sendMessage(message, false, true);
+    }
+    catch (std::exception& e)
+    {
+        // Communication error
+        return false;
+    }
+    return true;
+}
+
 Node RemoteNode::getPredecessor()
 {
     std::string message = createMessage(RPCCode::GET_PREDECESSOR, "");
@@ -102,7 +117,7 @@ void RemoteNode::receive(std::string message)
     std::string reply = sendMessage(msg, false);
 }
 
-std::string RemoteNode::sendMessage(std::string message, bool responseExpected = false)
+std::string RemoteNode::sendMessage(std::string message, bool responseExpected, bool throwException)
 {
     std::string portStr;
     std::ostringstream convert;
@@ -132,7 +147,10 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected =
     }
     catch (std::exception& e)
     {
-        std::cerr << "Exception in " << getName() << "(remote)::sendMessage() - " << e.what() << std::endl;
+        if (throwException)
+            throw e;
+        else
+            std::cerr << "Exception in " << getName() << "(remote)::sendMessage() - " << e.what() << std::endl;
     }
     return std::string("");
 }

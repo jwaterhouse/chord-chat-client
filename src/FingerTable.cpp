@@ -9,7 +9,8 @@ const Node& FingerTable::operator[](int index) const
     {
         //error
     }
-    while (_entries[index] == NULL) index--;
+    while (_entries[index] == NULL && index < M) index++;
+    if (index == M) return NULL;
     return _entries[index];
 }
 
@@ -58,9 +59,13 @@ void FingerTable::removeNode(Node n)
 {
     if (n != 0)
     {
-        for(int i = 0; i < M; ++i)
+        for (int i = 0; i < M; ++i)
+        {
             if (_entries[i] == n)
+            {
                 _entries[i] = NULL;
+            }
+        }
     }
 }
 
@@ -71,7 +76,7 @@ void FingerTable::printFingerTable() const
     SHA1::hexPrinter((unsigned char*)(_id.c_str()), ID_LEN);
     std::cout << std::endl;
     std::cout << "i\tstart\tid\tstart+id\tname" << std::endl;
-    for(int i = 0; i < M; ++i)
+    for (int i = 0; i < M; ++i)
     {
         if (_entries[i] != NULL)
         {

@@ -31,7 +31,8 @@ class RemoteNode : public INode
         virtual void receive(std::string);
 
     protected:
-        std::string sendMessage(std::string, bool);
+        virtual bool ping();
+        std::string sendMessage(std::string, bool = false, bool = false);
         std::string createMessage(RPCCode, const std::string&);
     private:
 };

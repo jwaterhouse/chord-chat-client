@@ -25,7 +25,7 @@ void ChatClient::run()
     printUsage();
 
     std::string line;
-    while(1)
+    for (;;)
     {
         std::cout << "> ";
         std::getline(std::cin, line);
@@ -34,14 +34,14 @@ void ChatClient::run()
         // check if we should quit the chat session
         size_t foundExit = line.find("exit");
         size_t foundQuit = line.find("quit");
-        if(foundExit == 0 || foundQuit == 0)
+        if (foundExit == 0 || foundQuit == 0)
         {
             std::cerr << "Exiting... Thanks for playing!" << std::endl;
             break;
         }
 
         size_t foundHelp = line.find("help");
-        if(foundHelp == 0)
+        if (foundHelp == 0)
         {
             printUsage();
             continue;
@@ -82,8 +82,8 @@ void ChatClient::run()
         // Check if sending to self
         if (id == _n->getID())
         {
-            std::cerr << "Error - cannot send message to self." << std::endl;
-            continue;
+            //std::cerr << "Error - cannot send message to self." << std::endl;
+            //continue;
         }
 
         // add the sender to the message
@@ -106,7 +106,7 @@ void ChatClient::receiveMessage(std::string message)
 bool ChatClient::send(const ID& id, const std::string& message)
 {
     Node n = _n->findSuccessor(id);
-    if(n->getID() == id)
+    if (n->getID() == id)
     {
         n->receive(message);
         return true;

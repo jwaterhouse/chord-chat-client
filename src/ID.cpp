@@ -9,7 +9,7 @@ ID::ID(const char* id)
 
 ID::ID(const ID& other)
 {
-    for(int i = 0; i < ID_LEN; ++i)
+    for (int i = 0; i < ID_LEN; ++i)
         _id[i] = other[i];
 }
 
@@ -42,13 +42,7 @@ ID::ID(const std::string& str)
 
 ID::~ID()
 {
-    /*
-    if (_id != 0)
-    {
-        delete _id;
-        _id = 0;
-    }
-    */
+
 }
 
 bool ID::isInInterval(const ID& lower, const ID& upper) const
@@ -87,7 +81,7 @@ ID& ID::operator+=(const ID& other)
 {
     char overflow = 0x00;
     // MSB is at index 0
-    for(int i = ID_LEN - 1; i >= 0; --i)
+    for (int i = ID_LEN - 1; i >= 0; --i)
     {
         unsigned int val = (unsigned int)_id[i] + (unsigned int)other[i] + (unsigned int)overflow;
         _id[i] = (char)val;
@@ -104,7 +98,7 @@ const ID ID::operator+(const ID& rhs) const
 ID& ID::operator-=(const ID& other)
 {
     char overflow = 0x00;
-    for(int i = 0; i < ID_LEN; ++i)
+    for (int i = 0; i < ID_LEN; ++i)
     {
         unsigned int val = (unsigned int)_id[i] + (unsigned int)(other[i] ^ 0xff) + (unsigned int)overflow;
         if (i == 0) val = val + 1;
@@ -122,7 +116,7 @@ const ID ID::operator-(const ID& rhs) const
 
 bool operator==(const ID& lhs, const ID& rhs)
 {
-    for(int i = 0; i < ID_LEN; ++i)
+    for (int i = 0; i < ID_LEN; ++i)
         if (lhs[i] != rhs[i]) return false;
     return true;
 }
@@ -130,7 +124,7 @@ bool operator!=(const ID& lhs, const ID& rhs) { return !operator==(lhs,rhs); }
 bool operator<(const ID& lhs, const ID& rhs)
 {
     // MSB is at index 0
-    for(int i = 0; i < ID_LEN; ++i)
+    for (int i = 0; i < ID_LEN; ++i)
     {
         if (lhs[i] < rhs[i]) return true;
         if (lhs[i] > rhs[i]) return false;

@@ -15,20 +15,6 @@ LocalNode::LocalNode(const Node& n) : INode::INode(n)
 
 LocalNode::~LocalNode()
 {
-    /*
-    if (_predecessor != 0 && _predecessor != this)
-    {
-        delete _predecessor;
-        _predecessor = 0;
-    }
-    */
-    /*
-    if (_finger != 0)
-    {
-        delete _finger;
-        _finger = 0;
-    }
-    */
     if (_periodicThread != 0)
     {
         _stop = true;
@@ -43,31 +29,17 @@ LocalNode::~LocalNode()
         delete _serverThread;
         _serverThread = 0;
     }
-    if (_m != 0)
-    {
-        delete _m;
-        _m = 0;
-    }
-    if (_socketM != 0)
-    {
-        delete _socketM;
-        _socketM = 0;
-    }
 }
 
 void LocalNode::init()
 {
     _finger.setID(*_id);
-    setPredecessor(0);
-    //setSuccessor(thisPtr());
-
-    // initialise the mutexes
-    _m = new std::mutex();
-    _socketM = new std::mutex();
+    setPredecessor(NULL);
+    //setSuccessor(thisPtr());  //cannot set as part of constructor
 
     // start the threads
-    _periodicThread = new std::thread(&LocalNode::periodic, this);
     _serverRunning = true;
+    _periodicThread = new std::thread(&LocalNode::periodic, this);
     _serverThread = new std::thread(&LocalNode::server, this);
 }
 
@@ -84,9 +56,6 @@ Node LocalNode::findPredecessor(const ID& id)
 
 Node LocalNode::findSuccessor(const ID& id)
 {
-    //Node n = findPredecessor(id);
-    //return n->getSuccessor();
-
     Node s = getSuccessor();
     if(id.isInInterval(getID(), s->getID())
         || id == s->getID())
@@ -104,22 +73,33 @@ Node LocalNode::closestPrecedingFinger(const ID& id)
 {
     for (int i = M - 1; i >= 0; --i)
     {
-        if (_finger[i]->getID().isInInterval(getID(), id))
-            return _finger[i];
+        Node f = _finger[i];
+        if (f == NULL) continue;
+        if (f->getID().isInInterval(getID(), id))
+            return f;
     }
     return thisPtr();
 }
 
 void LocalNode::join(Node n)
 {
-    setPredecessor(0);
+    setPredecessor(NULL);
     setSuccessor(n->findSuccessor(getID()));
 }
 
 void LocalNode::stabilize()
 {
+    // check the successor first?
+    Node s = getSuccessor();
+    while (s->ping() == false)
+    {
+        // fix the finger table
+        _finger.removeNode(s);
+        s = getSuccessor();
+    }
+
     Node x = getSuccessor()->getPredecessor();
-    if(x != 0 &&
+    if (x != NULL &&
         (x->getID().isInInterval(getID(), getSuccessor()->getID())))
     {
         setSuccessor(x);
@@ -129,7 +109,7 @@ void LocalNode::stabilize()
 
 void LocalNode::notify(Node n)
 {
-    if(getPredecessor() == 0
+    if (getPredecessor() == NULL
         || n->getID().isInInterval(getPredecessor()->getID(), getID()))
     {
         setPredecessor(n);
@@ -139,37 +119,49 @@ void LocalNode::notify(Node n)
 void LocalNode::fixFingers()
 {
     unsigned int i = (unsigned int)rand() % (M - 1) + 1;
-    /*
-    _next++;
-    if (_next >= M) _next = 0;
-    unsigned int i = _next;
-    */
     ID sID = _finger.start(i);
     Node n = findSuccessor(sID);
-    if (n != 0 && n->getID() == getID()) n = thisPtr();
+    if(n != NULL && n->getID() == getID())
+        n = thisPtr();
     _finger.setNode(i, findSuccessor(sID));
+}
+
+void LocalNode::checkPredecessor()
+{
+    Node n = getPredecessor();
+    if(n != NULL && n != thisPtr() && n->ping() == false)
+        setPredecessor(NULL);
+}
+
+bool LocalNode::ping()
+{
+    return true;
 }
 
 Node LocalNode::getPredecessor()
 {
+    std::lock_guard<std::mutex> lock(_m);
     return _predecessor;
 }
 
 void LocalNode::setPredecessor(Node n)
 {
-    if (n != 0 && n->getID() == getID()) n = thisPtr();
+    std::lock_guard<std::mutex> lock(_m);
+    if (n != NULL && n->getID() == getID()) n = thisPtr();
     _predecessor = n;
 }
 
 Node LocalNode::getSuccessor()
 {
-    if (_finger.getNode(0) == 0) _finger.setNode(0, thisPtr());
+    std::lock_guard<std::mutex> lock(_m);
+    if (_finger[0] == NULL) _finger.setNode(0, thisPtr());
     return _finger[0];
 }
 
 void LocalNode::setSuccessor(Node n)
 {
-    if (n != 0 && n->getID() == getID()) n = thisPtr();
+    std::lock_guard<std::mutex> lock(_m);
+    if (n != NULL && n->getID() == getID()) n = thisPtr();
     _finger.setNode(0, n);
 }
 
@@ -184,21 +176,22 @@ void LocalNode::periodic()
     clock_t timer;
     clock_t timerloop;
     timer = clock();
-    for(;;)
+    for (;;)
     {
         // check if the thread needs to exit
-        if(_stop) return;
+        if (_stop) return;
 
         // check the timer
         timerloop = clock();
-        if((timerloop - timer) / (double)CLOCKS_PER_SEC > TIME_PERIOD)
+        if ((timerloop - timer) / (double)CLOCKS_PER_SEC > TIME_PERIOD)
         {
             //std::cout << getName() << ": periodic" << std::endl;
+            checkPredecessor();
             stabilize();
             fixFingers();
 
             // check the server process, try to restart it if necessary
-            if(!_serverRunning)
+            if (!_serverRunning)
             {
                 if (_serverThread != 0)
                 {
@@ -224,10 +217,10 @@ void LocalNode::server()
         asio::io_service io_service;
         asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), getPort());
         asio::ip::tcp::acceptor acceptor(io_service, endpoint);
-        for(;;)
+        for (;;)
         {
             // check if the thread needs to exit
-            if(_stop) return;
+            if (_stop) return;
 
             // create a new socket for this connection and listen
             asio::ip::tcp::socket socket(io_service);
@@ -239,7 +232,7 @@ void LocalNode::server()
             t.detach(); // dangerous?
         }
     }
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
         std::cerr << "Exception in " << getName() << "::server() - " << e.what() << std::endl;
     }
@@ -268,7 +261,7 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
 
         RPCCode messageCode = (RPCCode)message[0];
         int offset = 1;
-        switch(messageCode)
+        switch (messageCode)
         {
             case RPCCode::FIND_PREDECESSOR:
             {
@@ -361,6 +354,10 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
                 _rcvFn(receivedMessage);
             }
             break;
+            case RPCCode::PING:
+            {
+            }
+            break;
             default:
                 std::cerr << "Error: Invalid RPC code received - " << (int)messageCode << std::endl;
         }
@@ -369,7 +366,7 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
         std::string responseMessage = responseLength + response;
         asio::write(socket, asio::buffer(responseMessage));
     }
-    catch(std::exception& e)
+    catch (std::exception& e)
     {
         std::cerr << "Exception in " << getName() << "::handleRequest() - " << e.what() << std::endl;
     }

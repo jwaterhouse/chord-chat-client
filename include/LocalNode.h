@@ -43,13 +43,14 @@ class LocalNode : public INode
         void handleRequest(asio::ip::tcp::socket&);
 
     protected:
+        virtual bool ping();
+
         Node _predecessor = 0;
         FingerTable _finger;
         std::thread* _periodicThread = 0;
         std::thread* _serverThread = 0;
         bool _serverRunning = true;
-        std::mutex* _m = 0;
-        std::mutex* _socketM = 0;
+        std::mutex _m;
         bool _stop = false;
         unsigned int _next = 0;
 };
