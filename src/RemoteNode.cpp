@@ -1,7 +1,7 @@
 #include "../include/RemoteNode.h"
 #include  <cstdlib>
 #include <iostream>
-#include <asio.hpp>
+#include <boost/asio.hpp>
 
 Node RemoteNode::findPredecessor(const ID& id)
 {
@@ -126,22 +126,22 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected, 
 
     try
     {
-        asio::io_service io_service;
-        asio::ip::tcp::socket s(io_service);
-        asio::ip::tcp::resolver resolver(io_service);
-        asio::ip::tcp::resolver::query query(getHost(), portStr);
-        asio::connect(s, resolver.resolve(query));
+        boost::asio::io_service io_service;
+        boost::asio::ip::tcp::socket s(io_service);
+        boost::asio::ip::tcp::resolver resolver(io_service);
+        boost::asio::ip::tcp::resolver::query query(getHost(), portStr);
+        boost::asio::connect(s, resolver.resolve(query));
 
-        asio::write(s, asio::buffer(message));
+        boost::asio::write(s, boost::asio::buffer(message));
 
         if (responseExpected)
         {
             char header = '\0';
-            size_t reply_length = asio::read(s, asio::buffer(&header, 1));
+            size_t reply_length = boost::asio::read(s, boost::asio::buffer(&header, 1));
             int payloadLength = (int)header;
 
             char reply[MAX_DATA_LENGTH] = {'\0'};
-            reply_length = asio::read(s, asio::buffer(reply, payloadLength));
+            reply_length = boost::asio::read(s, boost::asio::buffer(reply, payloadLength));
             return std::string(reply, reply_length);
         }
     }

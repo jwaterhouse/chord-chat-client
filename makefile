@@ -3,7 +3,7 @@
 CC=g++
 # Hey!, I am comment number 2. I want to say that CFLAGS will be the
 # options I'll pass to the compiler.
-CFLAGS=-c -Wall -DASIO_STANDALONE -Ivendor/asio/include
+CFLAGS=-c -Wall -Ivendor/boost/include
 CPFLAGS=-pthread -std=c++0x
 
 all: chkdir ChordChat

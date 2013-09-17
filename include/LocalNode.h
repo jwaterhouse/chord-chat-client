@@ -5,7 +5,7 @@
 #include <thread>
 #include <functional>
 #include <mutex>
-#include <asio.hpp>
+#include <boost/asio.hpp>
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 
@@ -50,7 +50,7 @@ class LocalNode : public INode
         void checkPredecessor();
         void periodic();
         void server();
-        void handleRequest(asio::ip::tcp::socket&);
+        void handleRequest(boost::asio::ip::tcp::socket&);
 
 
 };
