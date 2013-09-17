@@ -74,8 +74,7 @@ Node LocalNode::closestPrecedingFinger(const ID& id)
     for (int i = M - 1; i >= 0; --i)
     {
         Node f = _finger[i];
-        if (f == NULL) continue;
-        if (f->getID().isInInterval(getID(), id))
+        if (f != NULL && f->getID().isInInterval(getID(), id))
             return f;
     }
     return thisPtr();
@@ -118,7 +117,7 @@ void LocalNode::notify(Node n)
 
 void LocalNode::fixFingers()
 {
-    unsigned int i = (unsigned int)rand() % (M - 1) + 1;
+    unsigned int i = (unsigned int)rand() % (M - 2) + 1;
     ID sID = _finger.start(i);
     Node n = findSuccessor(sID);
     if(n != NULL && n->getID() == getID())
@@ -265,9 +264,9 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
         {
             case RPCCode::FIND_PREDECESSOR:
             {
-                if (length < 21)
+                if (length != ID_LEN + 1)
                 {
-                    //error - message is too small
+                    std::cerr << "Error: Message length incorrect." << std::endl;
                 }
                 ID id((char*)(message + offset));
                 Node n = findPredecessor(id);
@@ -276,9 +275,9 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
             break;
             case RPCCode::FIND_SUCCESSOR:
             {
-                if (length < 21)
+                if (length != ID_LEN + 1)
                 {
-                    //error - message is too small
+                    std::cerr << "Error: Message length incorrect." << std::endl;
                 }
                 ID id((char*)(message + offset));
                 Node n = findSuccessor(id);
@@ -287,9 +286,9 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
             break;
             case RPCCode::CLOSEST_PRECEDING_FINGER:
             {
-                if (length < 21)
+                if (length != ID_LEN + 1)
                 {
-                    //error - message is too small
+                    std::cerr << "Error: Message length incorrect." << std::endl;
                 }
                 ID id((char*)(message + offset));
                 Node n = closestPrecedingFinger(id);
@@ -298,12 +297,12 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
             break;
             case RPCCode::JOIN:
             {
-                std::cerr << "join(): Not yet implemented." << std::endl;
+                std::cerr << "Error: join() not yet implemented." << std::endl;
             }
             break;
             case RPCCode::STABILIZE:
             {
-                std::cerr << "stabilize(): Not yet implemented." << std::endl;
+                std::cerr << "Error: stabilize() not yet implemented." << std::endl;
             }
             break;
             case RPCCode::NOTIFY:
@@ -314,7 +313,7 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
             break;
             case RPCCode::FIX_FINGER:
             {
-                std::cerr << "fixFinger(): Not yet implemented." << std::endl;
+                std::cerr << "Error: fixFinger() not yet implemented." << std::endl;
             }
             break;
             case RPCCode::GET_PREDECESSOR:

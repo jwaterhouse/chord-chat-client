@@ -33,11 +33,11 @@
 			<Add option="-std=c++0x" />
 			<Add option="-Wall" />
 			<Add option="-pthread" />
-			<Add directory="vendor/boost/include" />
+			<Add option="-DASIO_STANDALONE" />
+			<Add directory="vendor/asio/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-pthread" />
-			<Add library="vendor/boost/libs/system/build/gcc-4.7/release/link-static/libboost_system.a" />
 		</Linker>
 		<Unit filename="include/ChatClient.h" />
 		<Unit filename="include/FingerTable.h" />
