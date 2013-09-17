@@ -3,9 +3,8 @@
 CC=g++
 # Hey!, I am comment number 2. I want to say that CFLAGS will be the
 # options I'll pass to the compiler.
-CFLAGS=-c -Wall -Ivendor/boost/include
+CFLAGS=-c -Wall -DASIO_STANDALONE -Ivendor/asio/include
 CPFLAGS=-pthread -std=c++0x
-LDFLAGS=vendor/boost/libs/system/build/gcc-4.7/release/link-static/libboost_system.a 
 
 all: chkdir ChordChat
 

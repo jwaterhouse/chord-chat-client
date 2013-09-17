@@ -214,16 +214,16 @@ void LocalNode::server()
     std::vector<std::thread> threads();
     try
     {
-        boost::asio::io_service io_service;
-        boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), getPort());
-        boost::asio::ip::tcp::acceptor acceptor(io_service, endpoint);
+        asio::io_service io_service;
+        asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), getPort());
+        asio::ip::tcp::acceptor acceptor(io_service, endpoint);
         for (;;)
         {
             // check if the thread needs to exit
             if (_stop) return;
 
             // create a new socket for this connection and listen
-            boost::asio::ip::tcp::socket socket(io_service);
+            asio::ip::tcp::socket socket(io_service);
             acceptor.listen();
             acceptor.accept(socket);
 
@@ -239,23 +239,23 @@ void LocalNode::server()
     _serverRunning = false;
 }
 
-void LocalNode::handleRequest(boost::asio::ip::tcp::socket& socket)
+void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
 {
     try
     {
         char message[MAX_DATA_LENGTH] = {'\0'};
 
-        boost::system::error_code error;
+        asio::error_code error;
         char header = '\0';
-        size_t length = boost::asio::read(socket, boost::asio::buffer(&header, 1), error);
+        size_t length = asio::read(socket, asio::buffer(&header, 1), error);
         int messageLength = (int)header;
 
-        length = boost::asio::read(socket, boost::asio::buffer(message, messageLength), error);
+        length = asio::read(socket, asio::buffer(message, messageLength), error);
 
-        if (error == boost::asio::error::eof)
+        if (error == asio::error::eof)
             return; // Connection closed cleanly by peer.
         else if (error)
-            throw boost::system::system_error(error); // Some other error.
+            throw asio::system_error(error); // Some other error.
 
         std::string response = "";
 
@@ -364,7 +364,7 @@ void LocalNode::handleRequest(boost::asio::ip::tcp::socket& socket)
 
         char responseLength = (int)(response.length());
         std::string responseMessage = responseLength + response;
-        boost::asio::write(socket, boost::asio::buffer(responseMessage));
+        asio::write(socket, asio::buffer(responseMessage));
     }
     catch (std::exception& e)
     {
