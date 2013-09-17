@@ -1,6 +1,6 @@
-#include "../include/LocalNode.h"
 #include <cstdlib>
 #include <ctime>
+#include "../include/LocalNode.h"
 #include "../include/RemoteNode.h"
 
 LocalNode::LocalNode(const std::string& name, const std::string& host, unsigned int port) : INode::INode(name, host, port)
