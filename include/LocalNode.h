@@ -4,13 +4,8 @@
 #include <iostream>
 #include <thread>
 #include <functional>
-<<<<<<< HEAD
 #include <mutex>
 #include <boost/asio.hpp>
-=======
-#include <mutex>
-#include <asio.hpp>
->>>>>>> 7c4f27a50dea3ee135ddb49731a063db05309aa4
 #include "../include/INode.h"
 #include "../include/FingerTable.h"
 

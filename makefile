@@ -5,11 +5,12 @@ CC=g++
 # options I'll pass to the compiler.
 CFLAGS=-c -Wall -Ivendor/boost/include
 CPFLAGS=-pthread -std=c++0x
+LDFLAGS=vendor/boost/libs/system/build/gcc-4.7/release/link-static/libboost_system.a 
 
 all: chkdir ChordChat
 
 ChordChat: ChordChat.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o ChatClient.o
-	$(CC) obj/ChordChat.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/ChordChat $(CPFLAGS)
+	$(CC) obj/ChordChat.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/ChordChat $(CPFLAGS) $(LDFLAGS)
 
 ChordChat.o: src/ChordChat.cpp
 	$(CC) $(CFLAGS) src/ChordChat.cpp -o obj/ChordChat.o $(CPFLAGS)
