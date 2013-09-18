@@ -56,6 +56,7 @@ Node LocalNode::findPredecessor(const ID& id)
 
 Node LocalNode::findSuccessor(const ID& id)
 {
+    if(getID() == id) return thisPtr();
     Node s = getSuccessor();
     if(id.isInInterval(getID(), s->getID())
         || id == s->getID())
@@ -65,7 +66,7 @@ Node LocalNode::findSuccessor(const ID& id)
     else
     {
         Node n = closestPrecedingFinger(id);
-        return n->findSuccessor(id);
+	return n->findSuccessor(id);
     }
 }
 
