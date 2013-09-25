@@ -74,7 +74,7 @@ Node LocalNode::closestPrecedingFinger(const ID& id)
 {
     for (int i = M - 1; i >= 0; --i)
     {
-        Node f = _finger[i];
+        Node f = _finger.getNode(i);;
         if (f != NULL && f->getID().isInInterval(getID(), id))
             return f;
     }
@@ -154,8 +154,8 @@ void LocalNode::setPredecessor(Node n)
 Node LocalNode::getSuccessor()
 {
     std::lock_guard<std::mutex> lock(_m);
-    if (_finger[0] == NULL) _finger.setNode(0, thisPtr());
-    return _finger[0];
+    if (_finger.getNode(0) == NULL) _finger.setNode(0, thisPtr());
+    return _finger.getNode(0);
 }
 
 void LocalNode::setSuccessor(Node n)

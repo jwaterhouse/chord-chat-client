@@ -3,18 +3,18 @@
 #include "../include/FingerTable.h"
 #include <iostream>
 
-const Node& FingerTable::operator[](int index) const
+Node FingerTable::getNode(unsigned int index)
 {
     if (index < 0 || index >= M)
     {
-        std::cerr << "Error in FingerTable::operator[] - index '" << index << "' out of bounds." << std::endl;
+        std::cerr << "Error in FingerTable::getNode() - index '" << index << "' out of bounds." << std::endl;
     }
     while (_entries[index] == NULL && index < M) index++;
     if (index == M) return NULL;
     return _entries[index];
 }
 
-Node FingerTable::getNode(unsigned int index)
+Node FingerTable::getNodeAt(unsigned int index)
 {
     if (index < 0 || index >= M)
     {

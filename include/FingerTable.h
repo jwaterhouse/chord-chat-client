@@ -10,8 +10,8 @@ class FingerTable
         FingerTable(const ID& id) : _id(id) { }
         virtual ~FingerTable() { }
 
-        const Node& operator[](int) const;
         Node getNode(unsigned int);
+        Node getNodeAt(unsigned int);
         void setNode(unsigned int, Node);
         ID start(unsigned int) const;
         void setID(const ID&);
@@ -22,9 +22,8 @@ class FingerTable
         Node _entries[M] = {NULL};
         ID _id;
 
-        std::string getIDShort(const ID& id) const;
-
         void printFingerTable() const;
+        std::string getIDShort(const ID& id) const;
 };
 
 #endif // FINGERTABLE_H
