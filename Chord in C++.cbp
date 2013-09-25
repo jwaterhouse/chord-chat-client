@@ -35,6 +35,7 @@
 			<Add option="-pthread" />
 			<Add option="-DASIO_STANDALONE" />
 			<Add directory="vendor/asio/include" />
+			<Add directory="vendor/UnitTest++/src" />
 		</Compiler>
 		<Linker>
 			<Add option="-pthread" />

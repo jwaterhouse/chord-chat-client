@@ -3,10 +3,21 @@
 CC=g++
 # Hey!, I am comment number 2. I want to say that CFLAGS will be the
 # options I'll pass to the compiler.
-CFLAGS=-c -Wall -DASIO_STANDALONE -Ivendor/asio/include
+CFLAGS=-c -Wall -DASIO_STANDALONE -Ivendor/asio/include -Ivendor/UnitTest++/src
 CPFLAGS=-pthread -std=c++0x
+LDFLAGS_TEST=vendor/UnitTest++/libs/libUnitTest++.a
 
-all: chkdir ChordChat
+all: chat
+
+chat: chkdir ChordChat
+
+test: chkdir TestChord
+
+TestChord: UnitTests.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o ChatClient.o
+	$(CC) obj/UnitTests.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/TestChord $(CPFLAGS) $(LDFLAGS_TEST)
+
+UnitTests.o: src/UnitTests.cpp
+	$(CC) $(CFLAGS) src/UnitTests.cpp -o obj/UnitTests.o $(CPFLAGS)
 
 ChordChat: ChordChat.o ID.o FingerTable.o sha1.o LocalNode.o RemoteNode.o ChatClient.o
 	$(CC) obj/ChordChat.o obj/ID.o obj/FingerTable.o obj/sha1.o obj/LocalNode.o obj/RemoteNode.o obj/ChatClient.o -o bin/ChordChat $(CPFLAGS) $(LDFLAGS)

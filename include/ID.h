@@ -29,6 +29,7 @@ class ID
         ID& operator-=(const ID&);
         const ID operator-(const ID&) const;
         friend bool operator==(const ID&, const ID&);
+        friend bool operator!=(const ID&, const ID&);
         friend bool operator<(const ID&, const ID&);
         friend bool operator>(const ID&, const ID&);
         friend bool operator<=(const ID&, const ID&);
