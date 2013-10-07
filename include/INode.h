@@ -33,17 +33,17 @@ class INode : public std::enable_shared_from_this<INode>
 
         /** \brief Construct a new Node with a name, host and port.
          *
-         * \param name The Node's name. This is used to generate the Node's ID.
-         * \param host Hostname or IP address for this Node to listen on.
-         * \param port The port for this Node to listen on.
+         * \param std::string The Node's name. This is used to generate the Node's ID.
+         * \param std::string Hostname or IP address for this Node to listen on.
+         * \param unsigned int The port for this Node to listen on.
          */
         INode(const std::string& name, const std::string& host, unsigned int port)
             : _name(name), _host(host), _port(port), _id(_name) { }
 
         /** \brief Create a new Node from a serialization string.
          *
-         * \param serial The serialized Node string.
-         * \param length The length of the serial string.
+         * \param const char* The serialized Node string.
+         * \param size_t The length of the serial string.
          */
         INode(const char* serial, size_t length)
         {
@@ -69,7 +69,7 @@ class INode : public std::enable_shared_from_this<INode>
 
         /** \brief Copy constructor.
          *
-         * \param n The Node to copy
+         * \param Node The Node to copy
          */
         INode(const Node& n) : INode(n->getName(), n->getHost(), n->getPort()) { }
 

@@ -118,12 +118,13 @@ void LocalNode::notify(Node n)
 
 void LocalNode::fixFingers()
 {
+    // get a random number between from 1 to M - 1
     unsigned int i = (unsigned int)rand() % (M - 2) + 1;
     ID sID = _finger.start(i);
     Node n = findSuccessor(sID);
     if(n != NULL && n->getID() == getID())
         n = thisPtr();
-    _finger.setNode(i, findSuccessor(sID));
+    _finger.setNode(i, n);
 }
 
 void LocalNode::checkPredecessor()
@@ -370,7 +371,8 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
 
         char responseLength = (int)(response.length());
         std::string responseMessage = responseLength + response;
-        asio::write(socket, asio::buffer(responseMessage));
+        if(responseLength > 0)
+            asio::write(socket, asio::buffer(responseMessage));
     }
     catch (std::exception& e)
     {
