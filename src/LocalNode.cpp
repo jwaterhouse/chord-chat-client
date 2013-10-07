@@ -366,7 +366,7 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
             }
             break;
             default:
-                std::cerr << "Error: Invalid RPC code received - " << (int)messageCode << std::endl;
+                std::cerr << "Error: Invalid RPC code received - " << (int)code << std::endl;
         }
 
         char responseLength = (int)(response.length());
