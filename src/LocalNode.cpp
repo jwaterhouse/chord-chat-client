@@ -244,24 +244,30 @@ void LocalNode::handleRequest(asio::ip::tcp::socket& socket)
     try
     {
         char message[MAX_DATA_LENGTH] = {'\0'};
-
         asio::error_code error;
+        std::string response = "";
+
+        // parse the message - first byte is the header, which is just the
+        // length of the rest of the message
         char header = '\0';
         size_t length = asio::read(socket, asio::buffer(&header, 1), error);
         int messageLength = (int)header;
-
-        length = asio::read(socket, asio::buffer(message, messageLength), error);
-
         if (error == asio::error::eof)
             return; // Connection closed cleanly by peer.
         else if (error)
             throw asio::system_error(error); // Some other error.
 
-        std::string response = "";
+        // retrieve the rest of the message
+        length = asio::read(socket, asio::buffer(message, messageLength), error);
+        if (error == asio::error::eof)
+            return; // Connection closed cleanly by peer.
+        else if (error)
+            throw asio::system_error(error); // Some other error.
 
-        RPCCode messageCode = (RPCCode)message[0];
+        // first byte of the message is the RPC code
+        RPCCode code = (RPCCode)message[0];
         int offset = 1;
-        switch (messageCode)
+        switch (code)
         {
             case RPCCode::FIND_PREDECESSOR:
             {
