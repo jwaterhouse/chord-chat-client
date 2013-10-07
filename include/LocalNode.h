@@ -42,7 +42,7 @@ class LocalNode : public INode
         virtual bool ping();
         virtual void receive(std::string);
 
-        // Getters and setters;
+        // Getters and setters
         virtual Node getPredecessor();
         virtual void setPredecessor(Node);
         virtual Node getSuccessor();
