@@ -1,10 +1,11 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include "../include/LocalNode.h"
-#include "../include/RemoteNode.h"
-#include "../include/ChatClient.h"
-#include "../include/StringTrim.h"
+
+#include "LocalNode.h"
+#include "RemoteNode.h"
+#include "ChatClient.h"
+#include "StringTrim.h"
 
 static void printUsage()
 {
@@ -85,5 +86,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
-

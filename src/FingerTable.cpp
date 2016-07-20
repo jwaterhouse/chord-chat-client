@@ -1,7 +1,8 @@
 #include <cmath>
 #include <cstring>
-#include "../include/FingerTable.h"
 #include <iostream>
+
+#include "FingerTable.h"
 
 Node FingerTable::getNode(unsigned int index)
 {

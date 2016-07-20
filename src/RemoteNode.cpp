@@ -1,7 +1,8 @@
-#include "../include/RemoteNode.h"
 #include <cstdlib>
 #include <iostream>
 #include <asio.hpp>
+
+#include "RemoteNode.h"
 
 Node RemoteNode::findPredecessor(const ID& id)
 {

@@ -1,5 +1,6 @@
-#include <stdlib.h>     /* malloc, free, rand */
-#include "../include/ID.h"
+#include <stdlib.h>
+
+#include "ID.h"
 
 ID::ID(const char* id)
 {

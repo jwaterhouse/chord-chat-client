@@ -13,7 +13,7 @@ accompanying LICENSE file.
 #include <stdlib.h>
 #include <assert.h>
 
-#include "../include/sha1.h"
+#include "sha1.h"
 
 // print out memory in hexadecimal
 void SHA1::hexPrinter( unsigned char* c, int l )

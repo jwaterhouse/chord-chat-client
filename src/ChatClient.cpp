@@ -1,7 +1,8 @@
 #include <iostream>
-#include "../include/ChatClient.h"
-#include "../include/LocalNode.h"
-#include "../include/StringTrim.h"
+
+#include "ChatClient.h"
+#include "LocalNode.h"
+#include "StringTrim.h"
 
 ChatClient::ChatClient(std::string name, std::string host, unsigned int port)
 {
