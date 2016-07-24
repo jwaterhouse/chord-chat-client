@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-c -Wall -DASIO_STANDALONE -Ilib/asio-1.10.6/include -Ilib/catch
-CPFLAGS=-pthread -std=c++0x
+CFLAGS=-c -Wall -DASIO_STANDALONE -Ilib/asio-1.10.6/include -Ilib
+CPFLAGS=-pthread -std=c++11
 
 all: chat
 
