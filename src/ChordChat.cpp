@@ -1,7 +1,9 @@
 #include <iostream>
 #include <chrono>
+#include <exception>
 #include <thread>
 
+#include "Logger.h"
 #include "LocalNode.h"
 #include "RemoteNode.h"
 #include "ChatClient.h"
@@ -15,38 +17,34 @@ static void printUsage()
     std::cout << "\t\t<name@host:port> is an optional remote node to join." << std::endl;
 }
 
-static Node createNodeFromString(std::string str, bool local)
+static Node createNodeFromString(const std::string & str, bool local)
 {
     size_t nameSep = str.find("@");
     if (nameSep == std::string::npos)
     {
         // invalid recipient format
-        std::cerr << "Error - invalid node format, no '@' symbol." << std::endl;
-        return NULL;
+        throw std::runtime_error("Invalid node string, no '@' symbol: " + str);
     }
     std::string name = str.substr(0, nameSep);
     name = trim(name);
     if (name.length() == 0)
     {
         // invalid recipient format
-        std::cerr << "Error - please specify name." << std::endl;
-        return NULL;
+        throw std::runtime_error("Invalid node string, no name given: " + str);
     }
 
     size_t hostSep = str.find(":");
     if (hostSep == std::string::npos)
     {
         // invalid recipient format
-        std::cerr << "Error - invalid node format, no ':' symbol." << std::endl;
-        return NULL;
+        throw std::runtime_error("Invalid node string, no ':' symbol: " + str);
     }
     std::string host = str.substr(nameSep + 1, hostSep - (nameSep + 1));
     host = trim(host);
     if (host.length() == 0)
     {
         // invalid recipient format
-        std::cerr << "Error - please specify host." << std::endl;
-        return NULL;
+        throw std::runtime_error("Invalid node string, no host given: " + str);
     }
 
     std::string portStr = str.substr(hostSep + 1, str.length() - (hostSep + 1));
@@ -54,8 +52,7 @@ static Node createNodeFromString(std::string str, bool local)
     if (portStr.length() == 0)
     {
         // invalid recipient format
-        std::cerr << "Error - please specify port." << std::endl;
-        return NULL;
+        throw std::runtime_error("Invalid node string, no port given: " + str);
     }
 
     unsigned int port = (unsigned int)atoi(portStr.c_str());
@@ -66,23 +63,36 @@ static Node createNodeFromString(std::string str, bool local)
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2 || argc > 3)
+    try
     {
-        printUsage();
-        return 0;
-    }
+        LOG_INIT
+        LOG_LEVEL_DEBUG
 
-    Node localNode = createNodeFromString(std::string(argv[1]), true);
-    if (localNode == NULL) return 1;
-    if (argc == 3)
+        LOG->info("********** START **********");
+
+        if (argc < 2 || argc > 3)
+        {
+            printUsage();
+            return 0;
+        }
+        
+        Node localNode = createNodeFromString(std::string(argv[1]), true);
+        if (localNode == NULL) return -1;
+        if (argc == 3)
+        {
+            Node remoteNode = createNodeFromString(std::string(argv[2]), false);
+            if (remoteNode == NULL) return -1;
+            localNode->join(remoteNode);
+        }
+
+        ChatClient c(localNode);
+        c.run();
+    }
+    catch (const std::exception & e)
     {
-        Node remoteNode = createNodeFromString(std::string(argv[2]), false);
-        if (remoteNode == NULL) return 1;
-        localNode->join(remoteNode);
+        LOG->error("Exception:: {}", e.what());
+        std::cerr << "Exception: " << e.what() << std::endl;
     }
-
-    ChatClient c(localNode);
-    c.run();
 
     return 0;
 }

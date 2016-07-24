@@ -13,7 +13,7 @@ class FingerTable
          *
          * \param IF The ID for this FingerTable
          */
-        FingerTable(const ID& id) : _id(id) { }
+        FingerTable(const ID & id) : _id(id) { }
 
         /**< Destructor */
         virtual ~FingerTable() { }
@@ -24,40 +24,43 @@ class FingerTable
          * \return Node
          *
          */
-        Node getNode(unsigned int);
+        Node getNode(unsigned int index);
 
         /** \brief Get the exact node at the given index
          *
          * \param unsigned int Index to retrieve node
          * \return Node
          */
-        Node getNodeAt(unsigned int);
+        Node getNodeAt(unsigned int index);
 
         /** \brief Sets the Node in the finger table for the given index
          *
          * \param unsigned int The index to set
          * \param Node The Node to set
          */
-        void setNode(unsigned int, Node);
+        void setNode(unsigned int index, Node n);
 
         /** \brief Computes the ID for the given index ((n + 2**i) % 2**M)
          *
          * \param unsigned int
          * \return ID The computed ID
          */
-        ID start(unsigned int) const;
+        ID start(unsigned int k) const;
 
         /** \brief Sets the ID
          *
          * \param ID The ID to set
          */
-        void setID(const ID&);
+        void setId(const ID & id);
 
         /** \brief Removes all references to the given Node from the finger table
          *
          * \param Node The Node to remove
          */
-        void removeNode(Node);
+        void removeNode(Node n);
+
+        /**< Formath the current finger table state as a string */
+        std::string toString() const;
 
     protected:
     private:
@@ -67,11 +70,8 @@ class FingerTable
         /**< The ID for this finger table */
         ID _id;
 
-        /**< Debug method to print the finger table to the console */
-        void printFingerTable() const;
-
         /**< Returns a short Hex string represenation of the given ID */
-        std::string getIDShort(const ID& id) const;
+        std::string getIdShort(const ID & id) const;
 };
 
 #endif // FINGERTABLE_H

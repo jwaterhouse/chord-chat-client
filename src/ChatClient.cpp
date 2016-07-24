@@ -1,10 +1,11 @@
 #include <iostream>
 
+#include "Logger.h"
 #include "ChatClient.h"
 #include "LocalNode.h"
 #include "StringTrim.h"
 
-ChatClient::ChatClient(std::string name, std::string host, unsigned int port)
+ChatClient::ChatClient(const std::string & name, const std::string & host, unsigned int port)
 {
     _n = Node(new LocalNode(name, host, port));
     _n->setReceiveFunction(std::bind(&ChatClient::receiveMessage, this, std::placeholders::_1));
@@ -16,12 +17,8 @@ ChatClient::ChatClient(Node n)
     _n->setReceiveFunction(std::bind(&ChatClient::receiveMessage, this, std::placeholders::_1));
 }
 
-ChatClient::~ChatClient()
-{
-    //dtor
-}
-
-void ChatClient::run()
+void
+ChatClient::run()
 {
     printUsage();
 
@@ -81,11 +78,11 @@ void ChatClient::run()
         }
 
         // Check if sending to self
-        if (id == _n->getID())
-        {
-            //std::cerr << "Error - cannot send message to self." << std::endl;
-            //continue;
-        }
+        // if (id == _n->getId())
+        // {
+        //     std::cerr << "Error - cannot send message to self." << std::endl;
+        //     continue;
+        // }
 
         // add the sender to the message
         message = "(from " + _n->getName() + ") " + message;
@@ -99,23 +96,28 @@ void ChatClient::run()
     }
 }
 
-void ChatClient::receiveMessage(std::string message)
+void
+ChatClient::receiveMessage(const std::string & message)
 {
     std::cout << message << std::endl;
 }
 
-bool ChatClient::send(const ID& id, const std::string& message)
+bool
+ChatClient::send(const ID& id, const std::string & message)
 {
     Node n = _n->findSuccessor(id);
-    if (n->getID() == id)
+    if (n->getId() == id)
     {
         n->receive(message);
+
         return true;
     }
+    
     return false;
 }
 
-void ChatClient::printUsage()
+void
+ChatClient::printUsage()
 {
     std::cout << "Welcome to Chord Chat!" << std::endl;
     std::cout << "Usage\t- to send a message, type the recipients name followed by a double" << std::endl;

@@ -1,124 +1,153 @@
 #include <cstdlib>
 #include <iostream>
+
 #include <asio.hpp>
 
 #include "RemoteNode.h"
 
-Node RemoteNode::findPredecessor(const ID& id)
+#include "Logger.h"
+
+Node
+RemoteNode::findPredecessor(const ID & id)
 {
     std::string message = createMessage(RPCCode::FIND_PREDECESSOR, std::string(id.c_str(), ID_LEN));
     std::string reply = sendMessage(message, true);
     if (reply != "")
     {
         Node n(new RemoteNode(reply.c_str(), reply.length()));
+        
         return n;
     }
-    else return NULL;
+
+    return NULL;
 }
 
-Node RemoteNode::findSuccessor(const ID& id)
+Node
+RemoteNode::findSuccessor(const ID & id)
 {
     std::string message = createMessage(RPCCode::FIND_SUCCESSOR, std::string(id.c_str(), ID_LEN));
     std::string reply = sendMessage(message, true);
     if (reply != "")
     {
         Node n(new RemoteNode(reply.c_str(), reply.length()));
+
         return n;
     }
-    else return NULL;
+
+    return NULL;
 }
 
-Node RemoteNode::closestPrecedingFinger(const ID& id)
+Node
+RemoteNode::closestPrecedingFinger(const ID & id)
 {
     std::string message = createMessage(RPCCode::CLOSEST_PRECEDING_FINGER, std::string(id.c_str(), ID_LEN));
     std::string reply = sendMessage(message, true);
     if (reply != "")
     {
         Node n(new RemoteNode(reply.c_str(), reply.length()));
+
         return n;
     }
-    else return NULL;
+
+    return NULL;
 }
 
-void RemoteNode::join(Node n)
+void
+RemoteNode::join(Node n)
 {
-    std::cerr << "RemoteNode::join() - Not yet implemented." << std::endl;
+    LOG->error("RemoteNode::join() - Not implemented");
 }
 
-void RemoteNode::stabilize()
+void
+RemoteNode::stabilize()
 {
-    std::cerr << "RemoteNode::stabilize() - Not yet implemented." << std::endl;
+    LOG->error("RemoteNode::stabilize() - Not implemented");
 }
 
-void RemoteNode::notify(Node n)
+void
+RemoteNode::notify(Node n)
 {
     std::string message = createMessage(RPCCode::NOTIFY, n->serialize());
     std::string reply = sendMessage(message, false);
 }
 
-void RemoteNode::fixFingers()
+void
+RemoteNode::fixFingers()
 {
-    std::cerr << "RemoteNode::fixFingers() - Not yet implemented." << std::endl;
+    LOG->error("RemoteNode::fixFingers() - Not implemented");
 }
 
-bool RemoteNode::ping()
+bool
+RemoteNode::ping()
 {
     std::string message = createMessage(RPCCode::PING, "");
     try
     {
         std::string reply = sendMessage(message, false, true);
     }
-    catch (std::exception& e)
+    catch (const std::exception & e)
     {
-        // Communication error
+        LOG->error("RemoteNode::ping() - Exception: {}", e.what());
+
         return false;
     }
+
     return true;
 }
 
-Node RemoteNode::getPredecessor()
+Node
+RemoteNode::getPredecessor()
 {
     std::string message = createMessage(RPCCode::GET_PREDECESSOR, "");
     std::string reply = sendMessage(message, true);
     if (reply != "")
     {
         Node n(new RemoteNode(reply.c_str(), reply.length()));
+
         return n;
     }
-    else return NULL;
+
+    return NULL;
 }
 
-void RemoteNode::setPredecessor(Node n)
+void
+RemoteNode::setPredecessor(Node n)
 {
     std::string message = createMessage(RPCCode::SET_PREDECESSOR, n->serialize());
     std::string reply = sendMessage(message, false);
 }
 
-Node RemoteNode::getSuccessor()
+Node
+RemoteNode::getSuccessor()
 {
     std::string message = createMessage(RPCCode::GET_SUCCESSOR, "");
     std::string reply = sendMessage(message, true);
     if (reply != "")
     {
         Node n(new RemoteNode(reply.c_str(), reply.length()));
+
         return n;
     }
-    else return NULL;
+
+    return NULL;
 }
 
-void RemoteNode::setSuccessor(Node n)
+void
+RemoteNode::setSuccessor(Node n)
 {
     std::string message = createMessage(RPCCode::SET_SUCCESSOR, n->serialize());
     std::string reply = sendMessage(message, false);
 }
 
-void RemoteNode::receive(std::string message)
+void
+RemoteNode::receive(const std::string & message)
 {
     std::string msg = createMessage(RPCCode::RECEIVE, message);
     std::string reply = sendMessage(msg, false);
 }
 
-std::string RemoteNode::sendMessage(std::string message, bool responseExpected, bool throwException)
+std::string
+RemoteNode::sendMessage(const std::string & message, bool responseExpected, bool throwException)
 {
     std::string portStr;
     std::ostringstream convert;
@@ -143,22 +172,27 @@ std::string RemoteNode::sendMessage(std::string message, bool responseExpected, 
 
             char reply[MAX_DATA_LENGTH] = {'\0'};
             reply_length = asio::read(s, asio::buffer(reply, payloadLength));
+
             return std::string(reply, reply_length);
         }
     }
-    catch (std::exception& e)
+    catch (const std::exception & e)
     {
         if (throwException)
+        {
             throw e;
+        }
         else
-            std::cerr << "Exception in " << getName() << "(remote)::sendMessage() - " << e.what() << std::endl;
+        {
+            LOG->error("RemoteNode::sendMessage() - Exception: {}", e.what());
+        }
     }
     return std::string("");
 }
 
-std::string RemoteNode::createMessage(RPCCode code, const std::string& payLoad)
+std::string
+RemoteNode::createMessage(RPCCode code, const std::string & payLoad)
 {
     char messageLength = (char)(1 + payLoad.length());
-    char c = (char)code;
-    return messageLength + std::string("") + c + payLoad;
+    return messageLength + std::string("") + char(code) + payLoad;
 }

@@ -38,7 +38,7 @@ class INode : public std::enable_shared_from_this<INode>
          * \param std::string Hostname or IP address for this Node to listen on.
          * \param unsigned int The port for this Node to listen on.
          */
-        INode(const std::string& name, const std::string& host, unsigned int port)
+        INode(const std::string & name, const std::string & host, unsigned int port)
             : _name(name), _host(host), _port(port), _id(_name) { }
 
         /** \brief Create a new Node from a serialization string.
@@ -46,7 +46,7 @@ class INode : public std::enable_shared_from_this<INode>
          * \param const char* The serialized Node string.
          * \param size_t The length of the serial string.
          */
-        INode(const char* serial, size_t length)
+        INode(const char * serial, size_t length)
         {
             int position = 0;
             int nameLen = (int)serial[position];
@@ -72,7 +72,7 @@ class INode : public std::enable_shared_from_this<INode>
          *
          * \param Node The Node to copy
          */
-        INode(const Node& n) : INode(n->getName(), n->getHost(), n->getPort()) { }
+        INode(const Node & n) : INode(n->getName(), n->getHost(), n->getPort()) { }
 
         virtual ~INode() { }
 
@@ -81,28 +81,28 @@ class INode : public std::enable_shared_from_this<INode>
          * \param ID The ID to find the predecessor of.
          * \return Node The Node preceding ID.
          */
-        virtual Node findPredecessor(const ID&) = 0;
+        virtual Node findPredecessor(const ID &) = 0;
 
         /** \brief Find the successor of the given ID.
          *
          * \param ID The ID to find the successor of.
          * \return Node The Node succeeding ID.
          */
-        virtual Node findSuccessor(const ID&) = 0;
+        virtual Node findSuccessor(const ID &) = 0;
 
         /** \brief Return the closest preceding finger of the given ID.
          *
          * \param ID The ID to find the CPF of.
          * \return Node The closest Node preceding ID.
          */
-        virtual Node closestPrecedingFinger(const ID&) = 0;
+        virtual Node closestPrecedingFinger(const ID &) = 0;
 
         /** \brief Join an existing network through the given Node.
          *
          * \param Node Node of the network to join.
          * \return void
          */
-        virtual void join(Node) = 0;
+        virtual void join(Node n) = 0;
 
         /** \brief Stabilize this Node by checking it's successor.
          *
@@ -115,7 +115,7 @@ class INode : public std::enable_shared_from_this<INode>
          * \param Node The Node to notify.
          * \return void
          */
-        virtual void notify(Node) = 0;
+        virtual void notify(Node n) = 0;
 
         /** \brief Called periodically to check the finger table.
          *
@@ -134,19 +134,19 @@ class INode : public std::enable_shared_from_this<INode>
          * \param string The message to receive at this Node.
          * \return void
          */
-        virtual void receive(std::string) = 0;
+        virtual void receive(const std::string & message) = 0;
 
         // Getters and setters
         virtual Node getPredecessor() = 0;
-        virtual void setPredecessor(Node) = 0;
+        virtual void setPredecessor(Node n) = 0;
         virtual Node getSuccessor() = 0;
-        virtual void setSuccessor(Node) = 0;
-        const ID getID() const { return _id; }
+        virtual void setSuccessor(Node n) = 0;
+        const ID getId() const { return _id; }
         const std::string getName() const { return _name; }
         const std::string getHost() const { return _host; }
         unsigned int getPort() const { return _port; }
 
-        friend bool operator==(const INode& lhs, const INode& rhs) { return lhs.getID() == rhs.getID(); }
+        friend bool operator==(const INode & lhs, const INode & rhs) { return lhs.getId() == rhs.getId(); }
         virtual Node thisPtr() { return shared_from_this(); }
         virtual void setReceiveFunction(std::function<void(std::string)> rcvFn) { _rcvFn = rcvFn; }
         virtual std::string serialize()

@@ -12,40 +12,40 @@ class RemoteNode : public INode
          * \param std::string Host/IP of the node.
          * \param unsigned int Port for the node to communicate on.
          */
-        RemoteNode(const std::string& name, const std::string& host, unsigned int port) : INode::INode(name, host, port) { }
+        RemoteNode(const std::string & name, const std::string & host, unsigned int port) : INode::INode(name, host, port) { }
 
         /** \brief Constructs a RemoteNode from a node serialisation
          *
          * \param const char* Serialzed representation of the node
          * \param size_t The length of the serial array
          */
-        RemoteNode(const char* serial, size_t s) : INode::INode(serial, s) { }
+        RemoteNode(const char * serial, size_t s) : INode::INode(serial, s) { }
 
         /** \brief Copy constructor
          *
          * \param Node Node to copy
          */
-        RemoteNode(const Node& n) : INode::INode(n) { }
+        RemoteNode(const Node & n) : INode::INode(n) { }
 
         /**< Destructor */
         virtual ~RemoteNode() { }
 
         // Chord implementation methods
-        virtual Node findPredecessor(const ID&);
-        virtual Node findSuccessor(const ID&);
-        virtual Node closestPrecedingFinger(const ID&);
-        virtual void join(Node);
+        virtual Node findPredecessor(const ID & id);
+        virtual Node findSuccessor(const ID & id);
+        virtual Node closestPrecedingFinger(const ID & id);
+        virtual void join(Node n);
         virtual void stabilize();
-        virtual void notify(Node);
+        virtual void notify(Node n);
         virtual void fixFingers();
         virtual bool ping();
-        virtual void receive(std::string);
+        virtual void receive(const std::string & message);
 
         // Getters and setters
         virtual Node getPredecessor();
-        virtual void setPredecessor(Node);
+        virtual void setPredecessor(Node n);
         virtual Node getSuccessor();
-        virtual void setSuccessor(Node);
+        virtual void setSuccessor(Node n);
 
     protected:
     private:
@@ -56,7 +56,7 @@ class RemoteNode : public INode
          * \param bool True if the method should throw excpetions, false to handle them internally
          * \return std::string The reply message, or an empty string if none
          */
-        std::string sendMessage(std::string, bool = false, bool = false);
+        std::string sendMessage(const std::string & message, bool responseExpected = false, bool throwException = false);
 
         /** \brief Packages an RPCCode and payload into a message string
          *
@@ -64,7 +64,7 @@ class RemoteNode : public INode
          * \param std::string The payload of the message
          * \return std::string The created message
          */
-        std::string createMessage(RPCCode, const std::string&);
+        std::string createMessage(RPCCode code, const std::string & message);
 };
 
 #endif // REMOTENODE_H

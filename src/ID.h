@@ -16,16 +16,16 @@ class ID
         ID() { };
 
         /**< Construct an ID from a char array representing an ID */
-        ID(const char*);
+        ID(const char * id);
 
         /**< Copy constructor */
-        ID(const ID&);
+        ID(const ID & other);
 
         /**< Construct an ID from a host/IP and port, which are hashed */
-        ID(const std::string&, unsigned int);
+        ID(const std::string & host, unsigned int port);
 
         /**< Construct an ID from a string, which is hashed */
-        ID(const std::string&);
+        ID(const std::string & str);
 
         /**< Destructor */
         virtual ~ID();
@@ -37,33 +37,36 @@ class ID
          * \param ID The upper limit comparator
          * \return bool True if in interval, false if not
          */
-        bool isInInterval(const ID&, const ID&) const;
+        bool isInInterval(const ID & lower, const ID & upper) const;
 
         /**< Return this ID as a char array */
-        const char* c_str() const;
+        const char * c_str() const;
+
+        /**< Return this ID as a string of hexadecimal characters */
+        std::string toHexString() const;
 
         /**< Array access operators */
-        char& operator[](int);
-        const char& operator[](int) const;
+        char & operator[](int index);
+        const char & operator[](int index) const;
 
         /**< Arithmetic operators */
-        ID& operator+=(const ID&);
-        const ID operator+(const ID&) const;
-        ID& operator-=(const ID&);
-        const ID operator-(const ID&) const;
+        ID & operator+=(const ID & other);
+        const ID operator+(const ID & other) const;
+        ID & operator-=(const ID & other);
+        const ID operator-(const ID & other) const;
 
         /**< Comparison operators */
-        friend bool operator==(const ID&, const ID&);
-        friend bool operator!=(const ID&, const ID&);
-        friend bool operator<(const ID&, const ID&);
-        friend bool operator>(const ID&, const ID&);
-        friend bool operator<=(const ID&, const ID&);
-        friend bool operator>=(const ID&, const ID&);
+        friend bool operator==(const ID & lhs, const ID & rhs);
+        friend bool operator!=(const ID & lhs, const ID & rhs);
+        friend bool operator<(const ID & lhs, const ID & rhs);
+        friend bool operator>(const ID & lhs, const ID & rhs);
+        friend bool operator<=(const ID & lhs, const ID & rhs);
+        friend bool operator>=(const ID & lhs, const ID & rhs);
 
     protected:
     private:
         /**< Char array representing this ID */
-        char _id[ID_LEN] = {0x00};
+        char _id[ID_LEN] = {'\0'};
 };
 
 #endif // ID_H

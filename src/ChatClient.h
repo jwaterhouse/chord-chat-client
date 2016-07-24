@@ -14,7 +14,7 @@ class ChatClient
          * \param std::string Host/IP of the node
          * \param unsigned int Port for the node
          */
-        ChatClient(std::string, std::string, unsigned int);
+        ChatClient(const std::string & name, const std::string & port, unsigned int);
 
         /** \brief Construct a chat client with a prebuilt Node
          *
@@ -23,7 +23,7 @@ class ChatClient
         ChatClient(Node);
 
         /**< Destructor */
-        virtual ~ChatClient();
+        virtual ~ChatClient() {};
 
         /**< Run the ChatClient to process input and receive messages */
         void run();
@@ -35,7 +35,7 @@ class ChatClient
          *
          * \param std::string The received message
          */
-        void receiveMessage(std::string);
+        void receiveMessage(const std::string & message);
 
         /**< Print the usage details to the console */
         void printUsage();
@@ -46,7 +46,7 @@ class ChatClient
          * \param std::string The message to send
          * \return bool True of message sent, false if recipient not found
          */
-        bool send(const ID&, const std::string&);
+        bool send(const ID & id, const std::string & message);
 
         /**< The LocalNode for this ChatClient */
         Node _n = 0;

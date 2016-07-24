@@ -1,7 +1,7 @@
 #include <string>
 
 #define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include <catch/catch.hpp>
 
 #include "ID.h"
 #include "FingerTable.h"
@@ -24,7 +24,7 @@ TEST_CASE("IDCopyConstructor", "[ID]")
 
 TEST_CASE("IDStringConstructor", "[ID]")
 {
-	std::string s = "some TEST_CASE_CASE string";
+	std::string s = "some TEST_CASE string";
 
 	ID id1(s);
 	ID id2(s);
@@ -51,6 +51,8 @@ TEST_CASE("IDEquality", "[ID]")
 	ID id4(b4);
 
 	REQUIRE(id1 == id2);
+	REQUIRE(id1 <= id2);
+	REQUIRE(id1 >= id2);
 	REQUIRE(id3 != id4);
 	REQUIRE(id3 < id4);
 	REQUIRE(id3 <= id4);
